@@ -17,6 +17,7 @@ class Token:
         self.type = type
         self.value = value
 
+    """ Customized string representation of the token """
     def __str__(self) -> str:
        match self.type:
             case _TOKEN_TYPE.KEYWORD:
@@ -68,6 +69,8 @@ class LexicalParser:
             # constants
             "true", "false", "NULL",
         ]
+    
+    """ supported character sets """
     _delimiters = ["(", ")", "{", "}", "[", "]", ";", ",", ".", ":"]
     _single_char_operators = ["+", "-", "*", "/", "%", "=", "!", "&", "|", "^", "~", "<", ">", "?"]
     _double_char_operators = ["++", "--", "==", "!=", "<=", ">=", "&&", "||", "<<", ">>", "->"]
