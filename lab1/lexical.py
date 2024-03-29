@@ -82,6 +82,7 @@ class LexicalParser:
     _preprocessor_pattern =          re.compile(r"#.*")
     _char_pattern =                  re.compile(r"'.'")
     _unfinished_char_pattern =       re.compile(r"'.")
+    _anything_till_delimiter_pattern = re.compile(r"[a-zA-Z_0-9]*[\(\)\{\}\[\];,]")
     
     def __init__(self, code: str) -> None:
         """ Initialize the parser with the code to be parsed
@@ -133,8 +134,9 @@ class LexicalParser:
                 else:
                     match = re.match(self._unfinished_string_pattern, code[i-1:])
                     if match:
-                        i += len(match.group()) - 1
+                        match = re.search(self._anything_till_delimiter_pattern, code[i-1:])
                         warnings.warn("Unfinished string: %s" % match.group(), Warning)
+                        i += len(match.group()) - 1
             elif ch == "'":
                 match = re.match(self._char_pattern, code[i-1:])
                 if match:
@@ -143,8 +145,9 @@ class LexicalParser:
                 else:
                     match = re.match(self._unfinished_char_pattern, code[i-1:])
                     if match:
-                        i += len(match.group()) - 1
+                        match = re.search(self._anything_till_delimiter_pattern, code[i-1:])
                         warnings.warn("Unfinished char: %s" % match.group(), Warning)
+                        i += len(match.group()) - 1
             elif ch.isdigit():
                 match = re.match(self._number_pattern, code[i-1:])
                 if match:
