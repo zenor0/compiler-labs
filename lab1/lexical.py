@@ -29,7 +29,7 @@ class Token:
             case _TOKEN_TYPE.NUMBER:
                 return f"<num, {self.value}>"
             case _TOKEN_TYPE.STRING:
-                return "<str, {}>".format(repr(self.value).strip('\''))
+                return "<str, {}>".format(self.value)
             case _TOKEN_TYPE.OPERATOR:
                 return f"<{self.value}>"
             case _TOKEN_TYPE.CHAR:
@@ -76,16 +76,16 @@ class LexicalParser:
     _double_char_operators = ["++", "--", "==", "!=", "<=", ">=", "&&", "||", "<<", ">>", "->"]
 
     """ Define the regex patterns for parsing """
-    _number_pattern =                re.compile(r"[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?")
-    _string_pattern =                re.compile(r'"[^"]*"')
-    _unfinished_string_pattern =     re.compile(r'"[^"]*')
-    _comment_pattern =               re.compile(r"//.*")
-    _multi_line_comment_pattern =    re.compile(r"/\*.*?\*/", re.DOTALL)
-    _identifier_pattern =            re.compile(r"[a-zA-Z_][a-zA-Z_0-9]*")
-    _preprocessor_pattern =          re.compile(r"#.*")
-    _char_pattern =                  re.compile(r"'.'")
-    _unfinished_char_pattern =       re.compile(r"'.")
-    _anything_till_delimiter_pattern = re.compile(r"[a-zA-Z_0-9]*[\(\)\{\}\[\];,]")
+    _number_pattern =                   re.compile(r"[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?")
+    _string_pattern =                   re.compile(r'"[^"]*[^\n]"')
+    _unfinished_string_pattern =        re.compile(r'"[^"]*[\n]')
+    _comment_pattern =                  re.compile(r"//.*")
+    _multi_line_comment_pattern =       re.compile(r"/\*.*?\*/", re.DOTALL)
+    _identifier_pattern =               re.compile(r"[a-zA-Z_][a-zA-Z_0-9]*")
+    _preprocessor_pattern =             re.compile(r"#.*")
+    _char_pattern =                     re.compile(r"'.'")
+    _unfinished_char_pattern =          re.compile(r"'.[\n]")
+    _anything_till_delimiter_pattern =  re.compile(r"[a-zA-Z_0-9]*[\(\)\{\}\[\];,]")
     
     def __init__(self, code: str) -> None:
         """ Initialize the parser with the code to be parsed
@@ -106,18 +106,19 @@ class LexicalParser:
         
         code = self.code
         
-        # preprocess the code
-        # remove preprocessor and comments in the code
+        # Preprocess the code
+        # Remove preprocessor and comments in the code
         code = re.sub(self._preprocessor_pattern, "", code)
         code = re.sub(self._comment_pattern, "", code)
         code = re.sub(self._multi_line_comment_pattern, "", code)
         
-        # parse the code
+        # Scan the code and generate tokens
         i = 0
         n = len(code)
         while i < n:
             ch = code[i]
             i += 1
+            # print(code[i-1:])
             if ch.isspace():
                 continue
             if ch in self._delimiters:
@@ -129,17 +130,22 @@ class LexicalParser:
                     i += 1
                 else:
                     self.tokens.append(Token(_TOKEN_TYPE.OPERATOR, ch))
+                    
+            # Check for string
             elif ch == '"':
                 match = re.match(self._string_pattern, code[i-1:])
                 if match:
+                    # print(f'matched: {match.group()}')
                     self.tokens.append(Token(_TOKEN_TYPE.STRING, match.group()))
                     i += len(match.group()) - 1
                 else:
+                    warnings.warn("Fall back: %s" % code[i-1:], Warning)
                     match = re.match(self._unfinished_string_pattern, code[i-1:])
                     if match:
-                        match = re.search(self._anything_till_delimiter_pattern, code[i-1:])
-                        warnings.warn("Unfinished string: %s" % match.group(), Warning)
-                        i += len(match.group()) - 1
+                        warnings.warn("Unfinished string: %s" % code[:match.end()], Warning)
+                        i += match.end()
+                    
+            # Check for character
             elif ch == "'":
                 match = re.match(self._char_pattern, code[i-1:])
                 if match:
@@ -148,14 +154,17 @@ class LexicalParser:
                 else:
                     match = re.match(self._unfinished_char_pattern, code[i-1:])
                     if match:
-                        match = re.search(self._anything_till_delimiter_pattern, code[i-1:])
                         warnings.warn("Unfinished char: %s" % match.group(), Warning)
                         i += len(match.group()) - 1
+                        
+            # Check for number
             elif ch.isdigit():
                 match = re.match(self._number_pattern, code[i-1:])
                 if match:
                     self.tokens.append(Token(_TOKEN_TYPE.NUMBER, match.group()))
                     i += len(match.group()) - 1
+                    
+            # Check for identifier
             elif ch.isalpha() or ch == "_":
                 match = re.match(self._identifier_pattern, code[i-1:])
                 if match:
@@ -168,9 +177,15 @@ class LexicalParser:
                     i += len(match.group()) - 1
             else:
                 warnings.warn("Unknown character: %s" % ch, Warning)
+
         return self.tokens
 
 if __name__ == "__main__":
+    """ Simple test driver 
+    Usage:
+    python lexical.py < test.c
+    
+    """
     code = sys.stdin.read()
     parser = LexicalParser(code)
     tokens = parser.parse()

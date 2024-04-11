@@ -2,6 +2,8 @@ import sys
 from lexical import LexicalParser, _TOKEN_TYPE
 import argparse
 import logging
+import rich
+# from rich import logging
 
 # set logging format
 logging.basicConfig(format='%(levelname)s: \t%(message)s')
@@ -15,9 +17,8 @@ if __name__ == "__main__":
     
     args = ap.parse_args()
     filename = args.filename
-    verbose_mode = args.verbose
     
-    if verbose_mode:
+    if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
         logging.debug("Verbose mode enabled.")
         logging.debug(f"Input file: {filename}")
@@ -38,7 +39,7 @@ if __name__ == "__main__":
     parser = LexicalParser(code)
     tokens = parser.parse()
     
-    if verbose_mode:
+    if args.verbose:
         logging.debug("-"*20)
         logging.debug("Tokens: ")
         logging.debug("-"*20)
@@ -73,7 +74,7 @@ if __name__ == "__main__":
             f.write(f'NUMBER {n}\n')
     logging.info(f"Symbol table saved to {filename}.sym")
             
-    if verbose_mode:
+    if args.verbose:
         logging.debug("-"*20)
         logging.debug("Symbol Table: ")
         logging.debug("-"*20)

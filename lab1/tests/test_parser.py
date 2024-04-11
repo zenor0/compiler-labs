@@ -181,11 +181,11 @@ def test_control_flow():
 int main() {
     int a = 5, b = 10;
     if (a < b) {
-        printf("a is less than b\n");
+        printf("a is less than b\\n");
     } else if (a > b) {
-        printf("a is greater than b\n");
+        printf("a is greater than b\\n");
     } else {
-        printf("a is equal to b\n");
+        printf("a is equal to b\\n");
     }
     return 0;
 }
@@ -216,7 +216,7 @@ int main() {
         Token(_TOKEN_TYPE.DELIMITER,     "{"),
         Token(_TOKEN_TYPE.IDENTIFIER,    "printf"),
         Token(_TOKEN_TYPE.DELIMITER,     "("),
-        Token(_TOKEN_TYPE.STRING,        '"a is less than b\n"'),
+        Token(_TOKEN_TYPE.STRING,        '"a is less than b\\n"'),
         Token(_TOKEN_TYPE.DELIMITER,     ")"),
         Token(_TOKEN_TYPE.DELIMITER,     ";"),
         Token(_TOKEN_TYPE.DELIMITER,     "}"),
@@ -230,7 +230,7 @@ int main() {
         Token(_TOKEN_TYPE.DELIMITER,     "{"),
         Token(_TOKEN_TYPE.IDENTIFIER,    "printf"),
         Token(_TOKEN_TYPE.DELIMITER,     "("),
-        Token(_TOKEN_TYPE.STRING,        '"a is greater than b\n"'),
+        Token(_TOKEN_TYPE.STRING,        '"a is greater than b\\n"'),
         Token(_TOKEN_TYPE.DELIMITER,     ")"),
         Token(_TOKEN_TYPE.DELIMITER,    ";"),
         Token(_TOKEN_TYPE.DELIMITER,     "}"),
@@ -238,7 +238,7 @@ int main() {
         Token(_TOKEN_TYPE.DELIMITER,     "{"),
         Token(_TOKEN_TYPE.IDENTIFIER,    "printf"),
         Token(_TOKEN_TYPE.DELIMITER,     "("),
-        Token(_TOKEN_TYPE.STRING,        '"a is equal to b\n"'),
+        Token(_TOKEN_TYPE.STRING,        '"a is equal to b\\n"'),
         Token(_TOKEN_TYPE.DELIMITER,     ")"),
         Token(_TOKEN_TYPE.DELIMITER,     ";"),
         Token(_TOKEN_TYPE.DELIMITER,     "}"),
@@ -262,7 +262,7 @@ int factorial(int n) {
 
 int main() {
     int n = 5;
-    printf("The factorial of %d is %d\n", n, factorial(n));
+    printf("The factorial of %d is %d\\n", n, factorial(n));
     return 0;
 }
 """
@@ -316,7 +316,7 @@ int main() {
         Token(_TOKEN_TYPE.DELIMITER,     ";"),
         Token(_TOKEN_TYPE.IDENTIFIER,    "printf"),
         Token(_TOKEN_TYPE.DELIMITER,     "("),
-        Token(_TOKEN_TYPE.STRING,        '"The factorial of %d is %d\n"'),
+        Token(_TOKEN_TYPE.STRING,        '"The factorial of %d is %d\\n"'),
         Token(_TOKEN_TYPE.DELIMITER,     ","),
         Token(_TOKEN_TYPE.IDENTIFIER,    "n"),
         Token(_TOKEN_TYPE.DELIMITER,     ","),
@@ -343,7 +343,7 @@ def test_comments():
    comment */
 
 int main() {
-    printf("Hello, World!\n");
+    printf("Hello, World!\\n");
     return 0;
 }
 """
@@ -355,7 +355,7 @@ int main() {
         Token(_TOKEN_TYPE.DELIMITER,     "{"),
         Token(_TOKEN_TYPE.IDENTIFIER,    "printf"),
         Token(_TOKEN_TYPE.DELIMITER,     "("),
-        Token(_TOKEN_TYPE.STRING,        "\"Hello, World!\n\""),
+        Token(_TOKEN_TYPE.STRING,        "\"Hello, World!\\n\""),
         Token(_TOKEN_TYPE.DELIMITER,     ")"),
         Token(_TOKEN_TYPE.DELIMITER,     ";"),
         Token(_TOKEN_TYPE.KEYWORD,       "return"),
@@ -417,7 +417,7 @@ a = 123; b=123.456; c=0.123; d=123.0; e=0.0; i=123e4; j=123e-4; k=123e+4; l=123.
 
 def test_string():
     code = """
-"string" "unfinish jskl&(*!@#[]sadf)
+"string" "unfinish jskldfadsf; 
     """
     
     with pytest.warns(Warning, match="Unfinished string: *"):
