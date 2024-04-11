@@ -43,6 +43,50 @@ You can also use the `-v` option to enable the verbose mode:
 python3 main.py -v <input_file>
 ```
 
+In hello world case, you may see output like this:
+
+```txt
+zenor0@DESKTOP-ZENOR0 ~/c/lab1 (main)> python3 main.py -v ./tmp/input
+[04/11/24 23:45:16] DEBUG    Verbose mode enabled.            main.py:29
+                    DEBUG    Input file: ./tmp/input          main.py:30
+                    INFO     File './tmp/input' loaded.       main.py:35
+                    DEBUG    Parsing done.                    main.py:46
+                    DEBUG    Showing token table:             main.py:47
+          Token Table           
+┏━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━┓
+┃ Type       ┃ Value           ┃
+┡━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━┩
+│ KEYWORD    │ int             │
+│ IDENTIFIER │ main            │
+│ DELIMITER  │ (               │
+│ DELIMITER  │ )               │
+│ DELIMITER  │ {               │
+│ IDENTIFIER │ printf          │
+│ DELIMITER  │ (               │
+│ STRING     │ "Hello, World!" │
+│ DELIMITER  │ )               │
+│ DELIMITER  │ ;               │
+│ KEYWORD    │ return          │
+│ NUMBER     │ 0               │
+│ DELIMITER  │ ;               │
+│ DELIMITER  │ }               │
+└────────────┴─────────────────┘
+                    INFO     Tokens saved to ./tmp/input.out  main.py:61
+                    INFO     Symbol table saved to            main.py:82
+                             ./tmp/input.sym                            
+                    DEBUG    Symbol Table:                    main.py:85
+     Symbol Table      
+┏━━━━━━━━━━━━┳━━━━━━━━┓
+┃ Type       ┃ Value  ┃
+┡━━━━━━━━━━━━╇━━━━━━━━┩
+│ KEYWORD    │ int    │
+│ KEYWORD    │ return │
+│ IDENTIFIER │ main   │
+│ IDENTIFIER │ printf │
+│ NUMBER     │ 0      │
+└────────────┴────────┘
+                    INFO     Done. exiting...                 main.py:98
+```
 To run the test cases, use the following command:
 
 ```bash
