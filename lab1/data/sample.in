@@ -3,7 +3,7 @@ int main()
     int i;
     int j;
     int cnt;
-    i=385+9*11;
+    i=3.85+9*11;
     j=50;
     cnt=0;
     While (true)  

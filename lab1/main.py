@@ -1,13 +1,19 @@
 import sys
+
+import rich.table
 from lexical import LexicalParser, _TOKEN_TYPE
 import argparse
 import logging
 import rich
+from rich.logging import RichHandler
+
 # from rich import logging
 
 # set logging format
-logging.basicConfig(format='%(levelname)s: \t%(message)s')
-
+logger = logging.getLogger('rich')
+logger.setLevel(logging.INFO)
+rich_handler = RichHandler()
+logger.addHandler(rich_handler)
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description='Lexical Parser')
@@ -19,19 +25,16 @@ if __name__ == "__main__":
     filename = args.filename
     
     if args.verbose:
-        logging.getLogger().setLevel(logging.DEBUG)
-        logging.debug("Verbose mode enabled.")
-        logging.debug(f"Input file: {filename}")
-        logging.debug("-"*20)
-    else:
-        logging.getLogger().setLevel(logging.INFO)
+        logger.setLevel(logging.DEBUG)
+        logger.debug("Verbose mode enabled.")
+        logger.debug(f"Input file: {filename}")
     
     try:
         with open(filename, "r") as f:
             code = f.read()
-            logging.info(f"File '{filename}' loaded.")
+            logger.info(f"File '{filename}' loaded.")
     except FileNotFoundError:
-        logging.error(f"File '{filename}' not found.")
+        logger.error(f"File '{filename}' not found.")
         sys.exit(1)
     
     
@@ -40,18 +43,22 @@ if __name__ == "__main__":
     tokens = parser.parse()
     
     if args.verbose:
-        logging.debug("-"*20)
-        logging.debug("Tokens: ")
-        logging.debug("-"*20)
+        logger.debug("Parsing done.")
+        logger.debug("Showing token table:")
+        table = rich.table.Table(title="Token Table")
+        table.add_column("Type", style="magenta")
+        table.add_column("Value", style="green")
         for token in tokens:
-            logging.debug(token)
-        logging.debug("-"*20)
-
-    # save to file
+            table.add_row(token.type.name, str(token.value))
+        console = rich.console.Console()
+        console.print(table)
+        
+        
+    # Save tokens to file
     with open(filename+'.out', "w") as f:
         for token in tokens:
             f.write(str(token)+"\n")
-    logging.info(f"Tokens saved to {filename}.out")
+    logger.info(f"Tokens saved to {filename}.out")
     
     # print symbol table
     keyword_list = {}
@@ -72,20 +79,20 @@ if __name__ == "__main__":
             f.write(f'IDENTIFIER {i}\n')
         for n in number_list:
             f.write(f'NUMBER {n}\n')
-    logging.info(f"Symbol table saved to {filename}.sym")
+    logger.info(f"Symbol table saved to {filename}.sym")
             
     if args.verbose:
-        logging.debug("-"*20)
-        logging.debug("Symbol Table: ")
-        logging.debug("-"*20)
+        logger.debug("Symbol Table: ")
+        table = rich.table.Table(title="Symbol Table")
+        table.add_column("Type", style="magenta")
+        table.add_column("Value", style="green")
         for k in keyword_list:
-            logging.debug(f'KEYWORD\t\t {k}')
+            table.add_row("KEYWORD", k)
         for i in identifier_list:
-            logging.debug(f'IDENTIFIER\t {i}')
+            table.add_row("IDENTIFIER", i)
         for n in number_list:
-            logging.debug(f'NUMBER\t\t {n}')
+            table.add_row("NUMBER", n)
+        console.print(table)
         
-        logging.debug("-"*20)            
     
-    
-    logging.info("Done. exiting...")
+    logger.info("Done. exiting...")
