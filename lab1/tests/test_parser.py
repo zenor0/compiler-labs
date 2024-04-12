@@ -417,12 +417,28 @@ a = 123; b=123.456; c=0.123; d=123.0; e=0.0; i=123e4; j=123e-4; k=123e+4; l=123.
 
 def test_string():
     code = """
-"string" "unfinish jskldfadsf; 
+"string" "unfinish jskldfadsf;
+
+int i;
     """
-    
-    with pytest.warns(Warning, match="Unfinished string: *"):
-        tokens = parse(code)
         
-    assert tokens == [
+    assert parse(code) == [
             Token(_TOKEN_TYPE.STRING, '"string"'),
+            Token(_TOKEN_TYPE.KEYWORD, "int"),
+            Token(_TOKEN_TYPE.IDENTIFIER, "i"),
+            Token(_TOKEN_TYPE.DELIMITER, ";"),
+        ]
+    
+def test_char():
+    code = """
+'c' 'unfinish jskldfadsf;
+
+int i;
+    """
+        
+    assert parse(code) == [
+            Token(_TOKEN_TYPE.CHAR, "'c'"),
+            Token(_TOKEN_TYPE.KEYWORD, "int"),
+            Token(_TOKEN_TYPE.IDENTIFIER, "i"),
+            Token(_TOKEN_TYPE.DELIMITER, ";"),
         ]

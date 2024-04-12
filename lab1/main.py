@@ -5,7 +5,9 @@ from lexical import LexicalParser, _TOKEN_TYPE
 import argparse
 import logging
 import rich
+from rich import print
 from rich.logging import RichHandler
+from rich.columns import Columns
 
 # from rich import logging
 
@@ -20,6 +22,7 @@ if __name__ == "__main__":
     
     ap.add_argument('filename', type=str, help='input file')
     ap.add_argument('-v', '--verbose', action='store_true', help='verbose mode')
+    ap.add_argument('-o', '--output', type=str, help='output file path', default='./outputs/')
     
     args = ap.parse_args()
     filename = args.filename
@@ -45,20 +48,18 @@ if __name__ == "__main__":
     if args.verbose:
         logger.debug("Parsing done.")
         logger.debug("Showing token table:")
-        table = rich.table.Table(title="Token Table")
-        table.add_column("Type", style="magenta")
-        table.add_column("Value", style="green")
+        token_table = rich.table.Table(title="Token Table")
+        token_table.add_column("Type", style="magenta")
+        token_table.add_column("Value", style="green")
         for token in tokens:
-            table.add_row(token.type.name, str(token.value))
-        console = rich.console.Console()
-        console.print(table)
-        
-        
+            token_table.add_row(token.type.name, str(token.value))
+
     # Save tokens to file
-    with open(filename+'.out', "w") as f:
+    token_filename = args.output + filename.split('/')[-1] + '.out'
+    with open(token_filename, "w") as f:
         for token in tokens:
             f.write(str(token)+"\n")
-    logger.info(f"Tokens saved to {filename}.out")
+    logger.info(f"Tokens saved to {token_filename}")
     
     # print symbol table
     keyword_list = {}
@@ -72,27 +73,32 @@ if __name__ == "__main__":
         elif token.type == _TOKEN_TYPE.NUMBER:
             number_list[token.value] = number_list.get(token.value, 0) + 1
     
-    with open(filename + '.sym', "w") as f:
+    symbol_filename = args.output + filename.split('/')[-1] + '.sym'
+    with open(symbol_filename, "w") as f:
         for k in keyword_list:
             f.write(f'KEYWORD {k}\n')
         for i in identifier_list:
             f.write(f'IDENTIFIER {i}\n')
         for n in number_list:
             f.write(f'NUMBER {n}\n')
-    logger.info(f"Symbol table saved to {filename}.sym")
+    logger.info(f"Symbol table saved to {symbol_filename}")
             
     if args.verbose:
         logger.debug("Symbol Table: ")
-        table = rich.table.Table(title="Symbol Table")
-        table.add_column("Type", style="magenta")
-        table.add_column("Value", style="green")
+        symbol_table = rich.table.Table(title="Symbol Table")
+        symbol_table.add_column("Type", style="magenta")
+        symbol_table.add_column("Value", style="green")
         for k in keyword_list:
-            table.add_row("KEYWORD", k)
+            symbol_table.add_row("KEYWORD", k)
         for i in identifier_list:
-            table.add_row("IDENTIFIER", i)
+            symbol_table.add_row("IDENTIFIER", i)
         for n in number_list:
-            table.add_row("NUMBER", n)
-        console.print(table)
+            symbol_table.add_row("NUMBER", n)
+
+    if args.verbose:
+        logger.debug("Showing tables:")
+        columns = Columns([token_table, symbol_table])
+        print(columns)
         
-    
+
     logger.info("Done. exiting...")

@@ -2,6 +2,14 @@ import sys
 import re
 from enum import Enum
 import warnings
+from rich.logging import RichHandler
+import logging
+
+logger = logging.getLogger('rich')
+# logger.setLevel(logging.INFO)
+# rich_handler = RichHandler()
+# logger.addHandler(rich_handler)
+
 
 class _TOKEN_TYPE(Enum):
     KEYWORD      = 1
@@ -82,6 +90,7 @@ class LexicalParser:
     _identifier_pattern =               re.compile(r"[a-zA-Z_][a-zA-Z_0-9]*")
     _char_pattern =                     re.compile(r"'.'")
     _unfinished_char_pattern =          re.compile(r"'.[\n]")
+    _new_line_pattern =                 re.compile('\n')
     _preprocessor_pattern =             re.compile(r"#.*")
     _comment_pattern =                  re.compile(r"//.*")
     _multi_line_comment_pattern =       re.compile(r"/\*.*?\*/", re.DOTALL)
@@ -137,11 +146,10 @@ class LexicalParser:
                     self.tokens.append(Token(_TOKEN_TYPE.STRING, match.group()))
                     i += len(match.group()) - 1
                 else:
-                    warnings.warn("Fall back: %s" % code[i-1:], Warning)
-                    match = re.match(self._unfinished_string_pattern, code[i-1:])
+                    match = re.search('\n', code[i-1:])
                     if match:
-                        warnings.warn("Unfinished string: %s" % code[:match.end()], Warning)
-                        i += match.end()
+                        logger.warning("Unfinished string: %s" % code[i-1:match.end()])
+                        i += match.end() - 1
                     
             # Check for character
             elif ch == "'":
@@ -150,10 +158,10 @@ class LexicalParser:
                     self.tokens.append(Token(_TOKEN_TYPE.CHAR, match.group()))
                     i += len(match.group()) - 1
                 else:
-                    match = re.match(self._unfinished_char_pattern, code[i-1:])
+                    match = re.search('\n', code[i-1:])
                     if match:
-                        warnings.warn("Unfinished char: %s" % match.group(), Warning)
-                        i += len(match.group()) - 1
+                        logger.warning("Unfinished char: %s" % code[i-1:match.end()])
+                        i += match.end() - 1
                         
             # Check for number
             elif ch.isdigit():
@@ -174,7 +182,7 @@ class LexicalParser:
                         self.tokens.append(Token(_TOKEN_TYPE.IDENTIFIER, word))
                     i += len(match.group()) - 1
             else:
-                warnings.warn("Unknown character: %s" % ch, Warning)
+                logger.warning("Unknown character: %s" % ch)
 
         return self.tokens
 
