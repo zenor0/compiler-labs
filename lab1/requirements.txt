@@ -1,2 +1,3 @@
 pytest
 rich
+pyan3==1.1.1

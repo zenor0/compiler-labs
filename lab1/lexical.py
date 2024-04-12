@@ -79,13 +79,12 @@ class LexicalParser:
     _number_pattern =                   re.compile(r"[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?")
     _string_pattern =                   re.compile(r'"[^"]*[^\n]"')
     _unfinished_string_pattern =        re.compile(r'"[^"]*[\n]')
-    _comment_pattern =                  re.compile(r"//.*")
-    _multi_line_comment_pattern =       re.compile(r"/\*.*?\*/", re.DOTALL)
     _identifier_pattern =               re.compile(r"[a-zA-Z_][a-zA-Z_0-9]*")
-    _preprocessor_pattern =             re.compile(r"#.*")
     _char_pattern =                     re.compile(r"'.'")
     _unfinished_char_pattern =          re.compile(r"'.[\n]")
-    _anything_till_delimiter_pattern =  re.compile(r"[a-zA-Z_0-9]*[\(\)\{\}\[\];,]")
+    _preprocessor_pattern =             re.compile(r"#.*")
+    _comment_pattern =                  re.compile(r"//.*")
+    _multi_line_comment_pattern =       re.compile(r"/\*.*?\*/", re.DOTALL)
     
     def __init__(self, code: str) -> None:
         """ Initialize the parser with the code to be parsed
@@ -135,7 +134,6 @@ class LexicalParser:
             elif ch == '"':
                 match = re.match(self._string_pattern, code[i-1:])
                 if match:
-                    # print(f'matched: {match.group()}')
                     self.tokens.append(Token(_TOKEN_TYPE.STRING, match.group()))
                     i += len(match.group()) - 1
                 else:

@@ -1,0 +1,41 @@
+digraph G {
+    graph [rankdir=TB, clusterrank="local"];
+    subgraph cluster_G {
+
+        graph [style="filled,rounded",fillcolor="#80808018", label=""];
+        lexical [label="lexical", style="filled", fillcolor="#ffffffb2", fontcolor="#000000", group="0"];
+        main [label="main", style="filled", fillcolor="#ffffffb2", fontcolor="#000000", group="1"];
+        subgraph cluster_lexical {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="lexical"];
+            lexical__LexicalParser [label="LexicalParser\n(lexical.py:44)", style="filled", fillcolor="#feccccb2", fontcolor="#000000", group="0"];
+            lexical__Token [label="Token\n(lexical.py:15)", style="filled", fillcolor="#feccccb2", fontcolor="#000000", group="0"];
+            lexical___TOKEN_TYPE [label="_TOKEN_TYPE\n(lexical.py:6)", style="filled", fillcolor="#feccccb2", fontcolor="#000000", group="0"];
+        }
+        subgraph cluster_lexical__LexicalParser {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="lexical.LexicalParser"];
+            lexical__LexicalParser____init__ [label="__init__\n(lexical.py:89)", style="filled", fillcolor="#ff9999b2", fontcolor="#000000", group="0"];
+            lexical__LexicalParser__parse [label="parse\n(lexical.py:99)", style="filled", fillcolor="#ff9999b2", fontcolor="#000000", group="0"];
+        }
+        subgraph cluster_lexical__Token {
+
+            graph [style="filled,rounded",fillcolor="#80808018", label="lexical.Token"];
+            lexical__Token____eq__ [label="__eq__\n(lexical.py:41)", style="filled", fillcolor="#ff9999b2", fontcolor="#000000", group="0"];
+            lexical__Token____init__ [label="__init__\n(lexical.py:16)", style="filled", fillcolor="#ff9999b2", fontcolor="#000000", group="0"];
+            lexical__Token____repr__ [label="__repr__\n(lexical.py:38)", style="filled", fillcolor="#ff9999b2", fontcolor="#000000", group="0"];
+            lexical__Token____str__ [label="__str__\n(lexical.py:21)", style="filled", fillcolor="#ff9999b2", fontcolor="#000000", group="0"];
+        }
+    }
+        lexical -> lexical__LexicalParser [style="solid", color="#000000"];
+        lexical -> lexical__LexicalParser____init__ [style="solid", color="#000000"];
+        lexical -> lexical__LexicalParser__parse [style="solid", color="#000000"];
+        lexical__Token____repr__ -> lexical__Token____str__ [style="solid", color="#000000"];
+        lexical__LexicalParser__parse -> lexical__LexicalParser____init__ [style="solid", color="#000000"];
+        lexical__LexicalParser__parse -> lexical__Token [style="solid", color="#000000"];
+        lexical__LexicalParser__parse -> lexical__Token____init__ [style="solid", color="#000000"];
+        main -> lexical___TOKEN_TYPE [style="solid", color="#000000"];
+        main -> lexical__LexicalParser [style="solid", color="#000000"];
+        main -> lexical__LexicalParser____init__ [style="solid", color="#000000"];
+        main -> lexical__LexicalParser__parse [style="solid", color="#000000"];
+    }
