@@ -1,0 +1,19 @@
+#include <stdio.h>
+
+// This is a single line comment
+
+/* This is a
+   multi-line
+   comment */
+
+int main() {
+    int a = 5, b = 10;
+    int sum = a + b;
+    printf("Hello, World!\\n");
+    int diff = a - b;
+    int prod = a * b;
+    int quot = b / a;
+    int rem = b % a;
+    a = 123; b=123.456; c=0.123; d=123.0; e=0.0; i=123e4; j=123e-4; k=123e+4; l=123.456e4; m=123.456e-4; n=123.456e+4;
+    return 0;
+}
