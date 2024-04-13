@@ -1,5 +1,4 @@
 from lexical import LexicalParser, _TOKEN_TYPE, Token
-import pytest
 
 def parse(src):
     lp = LexicalParser(src)
@@ -442,3 +441,12 @@ int i;
             Token(_TOKEN_TYPE.IDENTIFIER, "i"),
             Token(_TOKEN_TYPE.DELIMITER, ";"),
         ]
+    
+def test_undefined_char():
+    code = """
+；。。。
+    """
+        
+    assert parse(code) == [
+        ]
+    
