@@ -43,8 +43,8 @@ class Token:
             case _TOKEN_TYPE.CHAR:
                 return f"<{self.value}>"
 
-    def __repr__(self) -> str:
-        return self.__str__()
+    # def __repr__(self) -> str:
+    #     return self.__str__()
 
     def __eq__(self, o: object) -> bool:
         return self.type == o.type and self.value == o.value

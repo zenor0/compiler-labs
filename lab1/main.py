@@ -8,6 +8,7 @@ import rich
 from rich import print
 from rich.logging import RichHandler
 from rich.columns import Columns
+from rich.syntax import Syntax
 
 # from rich import logging
 
@@ -97,7 +98,8 @@ if __name__ == "__main__":
 
     if args.verbose:
         logger.debug("Showing tables:")
-        columns = Columns([token_table, symbol_table])
+        syntax = Syntax(code, "c", line_numbers=True, code_width=30)
+        columns = Columns([syntax, token_table, symbol_table])
         print(columns)
         
 
