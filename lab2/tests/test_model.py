@@ -3,7 +3,7 @@
 # test first set parse
 # test follow set parse
 
-from model import Symbol, Production, Grammar, Item
+from models import Symbol, Production, Grammar, Item
 
 def test_symbol():
     s1 = Symbol('a')

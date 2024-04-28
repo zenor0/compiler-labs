@@ -1,5 +1,4 @@
 from typing import List
-from utils.hash import get_hash_digest
 from enum import Enum
 
 EPSILON = '<epsilon>'

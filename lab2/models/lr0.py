@@ -82,8 +82,6 @@ class LR0(Grammar):
                         conflicts.append(f'{state} shift-reduce conflict')
                         break
                     shift = True
-            else:
-                conflicts.append(f'no conflict {state}')       
                     
         return conflicts
     
