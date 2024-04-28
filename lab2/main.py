@@ -1,4 +1,3 @@
-from models import Symbol, Production, Action, END_OF_INPUT
 from models.lr0 import LR0
 from utils import reader
 from utils import disp
@@ -11,6 +10,23 @@ if __name__ == '__main__':
     S -> B B
     B -> a B
     B -> b
+    """
+    
+    grammar = """
+    E -> a A
+    E -> b B
+    A -> c A
+    A -> d
+    B -> c B
+    B -> d
+    """
+    
+    grammar = """
+    S -> A B
+    A -> a B a
+    A -> <epsilon>
+    B -> b A b
+    B -> <epsilon>
     """
     
     productions = reader.read_grammar(grammar)

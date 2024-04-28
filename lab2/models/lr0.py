@@ -15,7 +15,10 @@ class LR0(Grammar):
         productions.insert(0, new_production)
         self.start_symbol = new_start
         
+        
         super().__init__(productions)
+        self._non_terminals.remove(new_start)
+        
         self.states = []
         self.state_transition = []
         self.init_states()

@@ -57,7 +57,7 @@ class Grammar:
             non_terminals[prod.head.value] = prod.head
         for prod in productions:
             for sym in prod.body:
-                if sym.value not in non_terminals:
+                if sym.value not in non_terminals and sym.value != EPSILON:
                     terminals[sym.value] = sym
                     
         self._non_terminals = [x for x in non_terminals.values()]
@@ -184,6 +184,8 @@ class Grammar:
 class Item(Production):
     def __init__(self, production: Production, dot_index: int, forward: List[Symbol] = None):
         super().__init__(production.head, production.body)
+        if self.body == EPSILON:
+            self.body = []
         self.dot_index = dot_index
         self.forward = forward
 
