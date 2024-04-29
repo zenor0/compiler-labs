@@ -3,7 +3,7 @@ from utils.hash import get_hash_digest
 from . import Grammar, Production, Symbol, Item, State, Behavior, Action
 from . import EPSILON, END_OF_INPUT, DOT
 
-class LR0(Grammar):
+class LR1(Grammar):
     states : List[State]
     state_transition : List
     
@@ -13,7 +13,7 @@ class LR0(Grammar):
         super().__init__(productions)
 
         self.init_states()
-    
+        
         conflicts = self.check_conflict()
         if conflicts:
             print('Conflicts:')
@@ -21,36 +21,11 @@ class LR0(Grammar):
                 print(conflict)
         else:
             print('No conflicts')
-
-    def calc_closure(self, state: State):
-        added = True
-        while added:
-            added = False
-            for item in state.states:
-                next_symbol = item.next_symbol()
-                if next_symbol is not None and next_symbol in self._non_terminals:
-                    for prod in self.productions:
-                        if prod.head == next_symbol:
-                            new_item = Item(prod, 0)
-                            if new_item not in state.states:
-                                state.states.append(new_item)
-                                added = True
-        return state
-    
-    def goto(self, state: State, symbol: Symbol):
-        kernel = []
-        for item in state.states:
-            next_symbol = item.next_symbol()
-            if next_symbol == symbol:
-                kernel.append(item.advance())
-        if kernel == []:
-            return None
-        return State(kernel)
-    
+       
     def init_states(self):
         self.states = []
         self.state_transition = []
-        start_item = Item(self.productions[0], 0)
+        start_item = Item(self.productions[0], 0, [Symbol(END_OF_INPUT)])
         start_state = self.calc_closure(State([start_item]))
         self.states.append(start_state)
         for state in self.states:
@@ -61,9 +36,38 @@ class LR0(Grammar):
                     if new_state not in self.states:
                         new_state = self.calc_closure(new_state)
                         self.states.append(new_state)
-
-        return self.states
+                        
+    def calc_closure(self, state: State):
+        added = True
+        while added:
+            added = False
+            for item in state.states:
+                next_symbol = item.next_symbol()
+                if next_symbol is not None and next_symbol in self._non_terminals:
+                    calc_first_term = item.body[item.dot_index+1:] + item.lookahead
+                    next_first = self.first(calc_first_term)
+                    for prod in self.productions:
+                        if prod.head == next_symbol:
+                            for lookahead in next_first:
+                                new_item = Item(prod, 0, [lookahead])
+                                if new_item not in state.states:
+                                    state.states.append(new_item)
+                                    added = False
+        return state
+    def goto(self, state: State, symbol: Symbol):
+        kernel = []
+        for item in state.states:
+            next_symbol = item.next_symbol()
+            if next_symbol == symbol:
+                new_item = item.advance()
+                new_item.lookahead = item.lookahead
+                kernel.append(new_item)
+        if kernel == []:
+            return None
+        return State(kernel)
     
+
+            
     def check_conflict(self):
         conflicts = []
         for state in self.states:
@@ -93,8 +97,7 @@ class LR0(Grammar):
             for item in state.states:
                 if item.is_reduce():
                     if item.head != self.start_symbol:
-                        for sym in self._terminals:
-                            state_table[get_hash_digest(state)][sym] = Behavior(Action.REDUCE, self.productions.index(item.get_production()))
+                        state_table[get_hash_digest(state)][item.lookahead[0]] = Behavior(Action.REDUCE, self.productions.index(item.get_production()))
                     else:
                         state_table[get_hash_digest(state)][Symbol(END_OF_INPUT)] = Behavior(Action.ACCEPT, 0)
                 else:
@@ -106,12 +109,7 @@ class LR0(Grammar):
                         new_state = self.goto(state, next_sym)
                         state_table[get_hash_digest(state)][next_sym] = Behavior(Action.GOTO, get_hash_digest(new_state))
         return state_table
-    
-    def dump_state_names(self):
-        state_name = {}
-        for index, state in enumerate(self.states):
-            state_name[get_hash_digest(state)] = f'{index}'
-        return state_name
+
 
     def __str__(self):
         info = [f'{super().__str__()}']

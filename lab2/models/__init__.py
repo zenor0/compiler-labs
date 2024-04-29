@@ -1,5 +1,6 @@
 from typing import List
 from enum import Enum
+from utils.hash import get_hash_digest
 
 EPSILON = '<epsilon>'
 END_OF_INPUT = '$'
@@ -62,6 +63,7 @@ class Grammar:
                     
         self._non_terminals = [x for x in non_terminals.values()]
         self._terminals = [x for x in terminals.values()]
+        self._terminals += [Symbol(END_OF_INPUT)]
         
         print('Non-terminals:', self._non_terminals)
         print('Terminals:', self._terminals)
@@ -136,6 +138,8 @@ class Grammar:
                             if not added_terminal:
                                 self._follow[symbol] |= self._follow[head_symbol]
 
+
+         
     def first(self, term: List[Symbol] | Symbol):
         if self._first is None:
             self.init_first()
@@ -166,7 +170,61 @@ class Grammar:
                 if Symbol(EPSILON) not in self._follow[sym]:
                     break
         return follow_set
+    
+    def augment_grammar(self, productions: List[Production]):
+        new_start = productions[0].head
+        while new_start in [x.head for x in productions]:
+            new_start = Symbol(new_start.value + "'")
+        new_production = Production(new_start, [productions[0].head])
+        productions.insert(0, new_production)
+        return productions, new_start
 
+    
+    def dump_state_names(self):
+        state_name = {}
+        for index, state in enumerate(self.states):
+            state_name[get_hash_digest(state)] = f'{index}'
+        return state_name
+
+
+    def parse(self, input: str):
+        table = self.dump_table()
+        state_name_map = self.dump_state_names()
+        
+        input = [Symbol(x) for x in input.split()]
+        input += [Symbol(END_OF_INPUT)]
+        result = []
+        
+        state_stack = [next(iter(table))]
+        symbol_stack = [Symbol(END_OF_INPUT)]
+        input_index = 0
+        while True:
+            input_ch = input[input_index]
+            if input_ch not in self._terminals:
+                result.append({'state': state_stack.copy(), 'symbol': symbol_stack.copy(), 'input': input[input_index:], 'action': 'Unknown symbol'})
+                break
+            action = table[state_stack[-1]][input[input_index]]
+            if action.action == Action.SHIFT:
+                result.append({'state': state_stack.copy(), 'symbol': symbol_stack.copy(), 'input': input[input_index:], 'action': f'Shift {state_name_map[action.value]}'})
+                state_stack.append(action.value)
+                symbol_stack.append(input[input_index])
+                input_index += 1
+            elif action.action == Action.REDUCE:
+                production = self.productions[action.value]
+                for _ in range(len(production.body)):
+                    state_stack.pop()
+                    symbol_stack.pop()
+                result.append({'state': state_stack.copy(), 'symbol': symbol_stack.copy(), 'input': input[input_index:], 'action': f'Reduce {production}'})
+                symbol_stack.append(production.head)
+                state_stack.append(table[state_stack[-1]][symbol_stack[-1]].value)
+            elif action.action == Action.ACCEPT:
+                result.append({'state': state_stack.copy(), 'symbol': symbol_stack.copy(), 'input': input[input_index:], 'action': 'Accept'})
+                break
+            else:
+                result.append({'state': state_stack.copy(), 'symbol': symbol_stack.copy(), 'input': input[input_index:], 'action': 'Error'})
+                break
+        return result
+    
     def get_first_set(self):
         return self._first.copy()
     
@@ -189,21 +247,21 @@ class Grammar:
         return iter(self.productions)
 
 class Item(Production):
-    def __init__(self, production: Production, dot_index: int, forward: List[Symbol] = None):
+    def __init__(self, production: Production, dot_index: int, lookahead: List[Symbol] = None):
         super().__init__(production.head, production.body)
         self.__original = production
-        if self.body == [EPSILON]:
+        if self.body == [Symbol(EPSILON)]:
             self.body = []
         self.dot_index = dot_index
-        self.forward = forward
+        self.lookahead = lookahead
 
     def get_production(self):
         return self.__original
 
     def __str__(self):
-        if self.forward is None:
+        if self.lookahead is None:
             return f'{self.head} -> {" ".join([str(x) for x in self.body[:self.dot_index]] + [DOT] + [str(x) for x in self.body[self.dot_index:]])}'
-        return f'{self.head} -> {" ".join([str(x) for x in self.body[:self.dot_index]] + [DOT] + [str(x) for x in self.body[self.dot_index:]])} forward: {self.forward}'
+        return f'{self.head} -> {" ".join([str(x) for x in self.body[:self.dot_index]] + [DOT] + [str(x) for x in self.body[self.dot_index:]])} forward: {self.lookahead}'
     
     def __repr__(self):
         return self.__str__()
@@ -212,7 +270,7 @@ class Item(Production):
         return hash(self) == hash(other)
 
     def __hash__(self):
-        return hash(str(self.head) + str(self.body) + str(self.dot_index))
+        return hash(str(self.head) + str(self.body) + str(self.dot_index) + str(self.lookahead))
 
     def next_symbol(self):
         if self.dot_index == len(self.body):
@@ -220,7 +278,9 @@ class Item(Production):
         return self.body[self.dot_index]
 
     def advance(self):
-        return Item(Production(self.head, self.body), self.dot_index + 1)
+        if self.dot_index == len(self.body):
+            return None
+        return Item(self.__original, self.dot_index + 1, self.lookahead)
     
     def is_reduce(self) -> bool:
         return self.dot_index == len(self.body)

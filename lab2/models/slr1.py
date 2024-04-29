@@ -14,6 +14,8 @@ class SLR1(LR0):
             state_table[get_hash_digest(state)] = {}
             for item in state.states:
                 if item.is_reduce():
+                # TO-DO: detect conflicts
+                # if a state is already set, means there is a conflict
                     if item.head != self.start_symbol:
                         for sym in self.get_follow_set()[item.head]:
                             state_table[get_hash_digest(state)][sym] = Behavior(Action.REDUCE, self.productions.index(item.get_production()))
