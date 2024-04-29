@@ -211,10 +211,10 @@ class Grammar:
                 input_index += 1
             elif action.action == Action.REDUCE:
                 production = self.productions[action.value]
+                result.append({'state': state_stack.copy(), 'symbol': symbol_stack.copy(), 'input': input[input_index:], 'action': f'Reduce {production}'})
                 for _ in range(len(production.body)):
                     state_stack.pop()
                     symbol_stack.pop()
-                result.append({'state': state_stack.copy(), 'symbol': symbol_stack.copy(), 'input': input[input_index:], 'action': f'Reduce {production}'})
                 symbol_stack.append(production.head)
                 state_stack.append(table[state_stack[-1]][symbol_stack[-1]].value)
             elif action.action == Action.ACCEPT:

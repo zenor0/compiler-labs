@@ -4,22 +4,22 @@ from rich.table import Table
 from models import Action, END_OF_INPUT, Symbol, Grammar
 
 def get_action_table(grammar : Grammar):
-    lr0_table = grammar.dump_table()
-    lr0_state_names = grammar.dump_state_names()
-    lr0_symbols = {'terminals': grammar._terminals, 'non_terminals': grammar._non_terminals}
+    table = grammar.dump_table()
+    state_name = grammar.dump_state_names()
+    symbols = {'terminals': grammar._terminals, 'non_terminals': grammar._non_terminals}
 
     action_table = Table(title="Action Table")
     action_table.add_column("State", justify="center", style="cyan", no_wrap=True)
-    for symbol in lr0_symbols['terminals']:
+    for symbol in symbols['terminals']:
         action_table.add_column(str(symbol), justify="center", style="red")
     
-    for state, actions in lr0_table.items():
-        row = [lr0_state_names[state]]
-        action_row = [lr0_state_names[state]]
-        for symbol in lr0_symbols['terminals']:
+    for state, actions in table.items():
+        row = [state_name[state]]
+        action_row = [state_name[state]]
+        for symbol in symbols['terminals']:
             if symbol in actions:
                 if actions[symbol].action == Action.SHIFT:
-                    content = f'S{lr0_state_names[actions[symbol].value]}'
+                    content = f'S{state_name[actions[symbol].value]}'
                     row.append(content)
                     action_row.append(content)
                 elif actions[symbol].action == Action.REDUCE:
@@ -39,21 +39,21 @@ def get_action_table(grammar : Grammar):
         
 
 def get_goto_table(grammar : Grammar):
-    lr0_table = grammar.dump_table()
-    lr0_state_names = grammar.dump_state_names()
-    lr0_symbols = {'terminals': grammar._terminals, 'non_terminals': grammar._non_terminals}
+    table = grammar.dump_table()
+    state_name = grammar.dump_state_names()
+    symbols = {'terminals': grammar._terminals, 'non_terminals': grammar._non_terminals}
 
     goto_table = Table(title="GOTO Table")
     goto_table.add_column("State", justify="center", style="cyan", no_wrap=True)
-    for symbol in lr0_symbols['non_terminals']:
+    for symbol in symbols['non_terminals']:
         goto_table.add_column(str(symbol), justify="center", style="yellow")
         
-    for state, actions in lr0_table.items():
-        row = [lr0_state_names[state]]
-        for symbol in lr0_symbols['non_terminals']:
+    for state, actions in table.items():
+        row = [state_name[state]]
+        for symbol in symbols['non_terminals']:
             if symbol in actions:
                 if actions[symbol].action == Action.GOTO:
-                    row.append(lr0_state_names[actions[symbol].value])
+                    row.append(state_name[actions[symbol].value])
             else:
                 row.append('')
         goto_table.add_row(*row)
@@ -100,8 +100,8 @@ def show_parse_result(grammar: Grammar, result: list):
     
     table = Table(title="Parse Result")
     table.add_column("State", justify="left", style="cyan", no_wrap=True)
-    table.add_column("Symbol", justify="left", style="cyan", no_wrap=True)
-    table.add_column("Input", justify="left", style="yellow")
+    table.add_column("Symbol", justify="left", style="yellow", no_wrap=True)
+    table.add_column("Input", justify="right", style="yellow")
     table.add_column("Action", justify="left", style="green")
     
     for obj in result:
