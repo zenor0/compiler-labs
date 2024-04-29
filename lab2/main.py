@@ -1,4 +1,5 @@
 from models.lr0 import LR0
+from models.slr1 import SLR1
 from utils import reader
 from utils import disp
 
@@ -31,14 +32,20 @@ if __name__ == '__main__':
     
     productions = reader.read_grammar(grammar)
     
-    lr0 = LR0(productions)
+    lr0 = SLR1(productions)
     
     action_table = disp.get_action_table(lr0)
     goto_table = disp.get_goto_table(lr0)
+    first_table = disp.get_first_table(lr0)
+    follow_table = disp.get_follow_table(lr0)
+    grammar_table = disp.get_grammar_table(lr0)
     
     layout = Layout()
     
     layout.split_row(
+        Layout(grammar_table, name="Grammar"),
+        Layout(first_table, name="First Set"),
+        Layout(follow_table, name="Follow Set"),
         Layout(action_table, name="Action Table"),
         Layout(goto_table, name="GOTO Table")
     )

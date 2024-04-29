@@ -25,7 +25,9 @@ class LR0(Grammar):
         
         conflicts = self.check_conflict()
         if conflicts:
-            print('Conflicts:', conflicts)
+            print('Conflicts:')
+            for conflict in conflicts:
+                print(conflict)
         else:
             print('No conflicts')
 
@@ -78,6 +80,9 @@ class LR0(Grammar):
                 if item.is_reduce():
                     if reduce:
                         conflicts.append(f'{state} reduce-reduce conflict')
+                        break
+                    if shift:
+                        conflicts.append(f'{state} shift-reduce conflict')
                         break
                     reduce = True
                 else:

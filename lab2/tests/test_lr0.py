@@ -1,5 +1,5 @@
 from models import lr0
-from lab2.utils import reader
+from utils import reader
 
 def test_lr0():
     grammar = """

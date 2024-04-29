@@ -61,9 +61,38 @@ def get_goto_table(grammar : LR0):
         goto_table.add_row(*row)
     return goto_table
 
+def get_first_table(grammar : LR0):
+    first_set = grammar.get_first_set()
+    first_table = Table(title="First Set")
+    first_table.add_column("sym", justify="left", style="cyan", no_wrap=True)
+    first_table.add_column("First Set", justify="left", style="green")
+    
+    for symbol, first in first_set.items():
+        first_table.add_row(str(symbol), ', '.join([str(x) for x in first]))
+    return first_table
+
+def get_follow_table(grammar : LR0):
+    follow_set = grammar.get_follow_set()
+    follow_table = Table(title="Follow Set")
+    follow_table.add_column("sym", justify="left", style="cyan", no_wrap=True)
+    follow_table.add_column("Follow Set", justify="left", style="green")
+    
+    for symbol, follow in follow_set.items():
+        follow_table.add_row(str(symbol), ', '.join([str(x) for x in follow]))
+    return follow_table
+
+def get_grammar_table(grammar: LR0):
+    productions = grammar.productions
+    grammar_table = Table(title="Grammar")
+    grammar_table.add_column("Production", justify="left", style="cyan", no_wrap=True)
+    for production in productions:
+        grammar_table.add_row(str(production))
+    return grammar_table
+
+
 
 def show_grammar(grammar : LR0):
     productions = grammar.dump_productions()
     for production in productions:
         print(production)
-    
+
