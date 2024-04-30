@@ -1,6 +1,7 @@
 from typing import List
 from enum import Enum
 from utils.hash import get_hash_digest
+import pickle
 
 EPSILON = '<epsilon>'
 END_OF_INPUT = '$'
@@ -44,10 +45,15 @@ class Production:
         return hash(str(self.head) + str(self.body))
 
 class Grammar:
-    _first = None
-    _follow = None
+    _first = {}
+    _follow = {}
+    _non_terminals = []
+    _terminals = []
+    start_symbol: str = ''
     
-    def __init__(self, productions: List[Production]):
+    def __init__(self, productions: List[Production] = None):
+        if productions is None:
+            return
         self.productions = productions
         self.start_symbol = productions[0].head
         
@@ -65,8 +71,8 @@ class Grammar:
         self._terminals = [x for x in terminals.values()]
         self._terminals += [Symbol(END_OF_INPUT)]
         
-        print('Non-terminals:', self._non_terminals)
-        print('Terminals:', self._terminals)
+        # print('Non-terminals:', self._non_terminals)
+        # print('Terminals:', self._terminals)
         
         self.init_first()
         self.init_follow()
@@ -141,8 +147,6 @@ class Grammar:
 
          
     def first(self, term: List[Symbol] | Symbol):
-        if self._first is None:
-            self.init_first()
         if isinstance(term, Symbol):
             return self._first[term]
         first_set = set()
@@ -156,8 +160,6 @@ class Grammar:
                     break
         return first_set
     def follow(self, term: List[Symbol] | Symbol):
-        if self._follow is None:
-            self.init_follow()
         if isinstance(term, Symbol):
             return self._follow[term]
         follow_set = set()
@@ -186,6 +188,11 @@ class Grammar:
             state_name[get_hash_digest(state)] = f'{index}'
         return state_name
 
+    def dump(self):
+        return pickle.dumps(self)
+    
+    def load(data):
+        return pickle.loads(data)
 
     def parse(self, input: str):
         table = self.dump_table()
