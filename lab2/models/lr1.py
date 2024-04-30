@@ -131,23 +131,15 @@ class LR1(Grammar):
         return hash(str(self.states))
 
     def to_json(self):
-        # Convert states to JSON
-        states_json = {}
+        states = []
         for index, state in enumerate(self.states):
             state_info = {}
-            state_info["items"] = state.states
-            state_hash = hash(state)
-            state_info["name"] = state_hash
-            states_json[f"State {index}"] = state_info
-            state_info["items"] = "I {}".format(index) + ", ".join(str(x) for x in state.states)
+            state_info["key"] = hash(state)
+            state_info["text"] = "I{}\n".format(index) + ", \n".join(str(x) for x in state.states)
+            states.append(state_info)
 
-        # Convert state_transition to JSON
-        state_transition_json = []
-        for state_from, by_sym, state_to in self.state_transition:
-            state_transition_json.append({
-                "state_from": state_from,
-                "state_to": state_to,
-                "by_sym_key": str(by_sym)
-            })
+        state_transition = []
+        for f, s, t in self.state_transition:
+            state_transition.append({"from": f, "to": t, "text": s})
 
-        return json.dumps({"states": states_json, "state_transition": state_transition_json}, indent=4)
+        return states, state_transition
