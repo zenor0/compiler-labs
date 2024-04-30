@@ -44,8 +44,7 @@ def read_grammar(raw : str) -> list[Production]:
     match = re.findall(OR_PRODUCTION_RE, raw)
     while match:
         for m in match:
-            raw = raw.replace(m[1]+m[2], f'\n{m[0]} -> {m[2]}')
-            
+            raw = raw.replace(m[1]+m[2], f'\n{m[0]} -> {m[2]}', 1)
         match = re.findall(OR_PRODUCTION_RE, raw)
     
     match = re.findall(PRODUCTION_RE, raw)
