@@ -1,7 +1,8 @@
 from rich import print
 from rich.table import Table
 
-from models import Action, END_OF_INPUT, Symbol, Grammar
+from models import Action, END_OF_INPUT, Symbol, Grammar, Node
+from utils.hash import get_hash_digest
 
 def get_action_table(grammar : Grammar):
     table = grammar.dump_table()
@@ -112,4 +113,28 @@ def show_parse_result(grammar: Grammar, result: list):
         action = obj['action']
         table.add_row(str(state), str(symbol), str(input), action)
     return table
-    
+
+
+def print_tree(node: Node, level=0):
+    if node is None:
+        return
+    print(' ' * 4 * level + '->', node.symbol)
+    for child in node.children:
+        print_tree(child, level + 1)
+        
+def first_traverse(node: Node, method, *args):
+    if node is None:
+        return
+    method(node, *args)
+    for child in node.children:
+        first_traverse(child, method, *args)
+
+def get_node_info(node: Node, style = None):
+    if style == None:
+        style = 'fill: "#f8f8f8", stroke: "#4d90fe"'
+    return f'{{ key:{get_hash_digest(node)}, text: "{str(node.symbol)}", {style}, parent: {get_hash_digest(node.parent)}}}'
+
+def tree2hash(root: Node):
+    dump_table = []
+    first_traverse(root, lambda x, table: table.append(get_node_info(x)), dump_table)
+    return dump_table
