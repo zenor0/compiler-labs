@@ -225,6 +225,58 @@ class Grammar:
                 break
         return result
     
+    
+    
+    def parse_node(self, input: str):
+        table = self.dump_table()
+        state_name_map = self.dump_state_names()
+        
+        input = [Node(Symbol(x)) for x in input.split()]
+        input += [Node(Symbol(END_OF_INPUT))]
+        result = []
+        
+        state_stack = [next(iter(table))]
+        symbol_stack = [Node(Symbol(END_OF_INPUT))]
+        input_index = 0
+        
+        pop_history = []
+        while True:
+            input_ch = input[input_index]
+            action = table[state_stack[-1]][input[input_index].symbol]
+            if action.action == Action.SHIFT:
+                result.append({'state': state_stack.copy(), 'symbol': symbol_stack.copy(), 'input': input[input_index:], 'action': f'Shift {state_name_map[action.value]}'})
+                state_stack.append(action.value)
+                symbol_stack.append(input[input_index])
+                input_index += 1
+            elif action.action == Action.REDUCE:
+                production = self.productions[action.value]
+                result.append({'state': state_stack.copy(), 'symbol': symbol_stack.copy(), 'input': input[input_index:], 'action': f'Reduce {production}'})
+                
+                popped_node = []
+                new_symbol = Node(production.head)
+                if production.body == [Symbol(EPSILON)]:
+                    epsilon_node = Node(Symbol(EPSILON))
+                    epsilon_node.parent = new_symbol
+                    new_symbol.children = [epsilon_node]
+                else:
+                    for _ in range(len(production.body)):
+                        state_stack.pop()
+                        popped_node.append(symbol_stack.pop())
+                    new_symbol.children = popped_node
+                for node in popped_node:
+                    node.parent = new_symbol
+                symbol_stack.append(new_symbol)
+                pop_history.append(popped_node)
+                
+                state_stack.append(table[state_stack[-1]][symbol_stack[-1].symbol].value)
+            elif action.action == Action.ACCEPT:
+                result.append({'state': state_stack.copy(), 'symbol': symbol_stack.copy(), 'input': input[input_index:], 'action': 'Accept'})
+                break
+            else:
+                result.append({'state': state_stack.copy(), 'symbol': symbol_stack.copy(), 'input': input[input_index:], 'action': 'Error'})
+                break
+        return result, symbol_stack
+    
     def get_first_set(self):
         return self._first.copy()
     
@@ -318,4 +370,19 @@ class Behavior:
         return f'{self.action.name} {self.value}'
     def __repr__(self) -> str:
         return self.__str__()
+
+
+class Node:
+    def __init__(self, symbol: Symbol):
+        self.symbol = symbol
+        self.parent = None
+        self.children = []
+
+    def add_child(self, child):
+        self.children.append(child)
+        
+    def set_parent(self, parent):
+        self.parent = parent
     
+    def __repr__(self):
+        return self.symbol.value
