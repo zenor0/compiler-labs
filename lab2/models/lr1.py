@@ -129,3 +129,17 @@ class LR1(Grammar):
 
     def __hash__(self):
         return hash(str(self.states))
+
+    def to_json(self):
+        states = []
+        for index, state in enumerate(self.states):
+            state_info = {}
+            state_info["key"] = hash(state)
+            state_info["text"] = "I{}\n".format(index) + ", \n".join(str(x) for x in state.states)
+            states.append(state_info)
+
+        state_transition = []
+        for f, s, t in self.state_transition:
+            state_transition.append({"from": f, "to": t, "text": s})
+
+        return states, state_transition
