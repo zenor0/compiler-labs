@@ -1,14 +1,12 @@
 from rich import print
 from rich.table import Table
+from rich.layout import Layout
+from rich.panel import Panel
 
 from models import Action, END_OF_INPUT, Symbol, Grammar, Node
 from utils.hash import get_hash_digest
 
-def get_action_table(grammar : Grammar):
-    table = grammar.dump_table()
-    state_name = grammar.dump_state_names()
-    symbols = {'terminals': grammar._terminals, 'non_terminals': grammar._non_terminals}
-
+def _get_action_table(table, state_name, symbols):
     action_table = Table(title="Action Table")
     action_table.add_column("State", justify="center", style="cyan", no_wrap=True)
     for symbol in symbols['terminals']:
@@ -37,13 +35,15 @@ def get_action_table(grammar : Grammar):
                 action_row.append('')
         action_table.add_row(*action_row)
     return action_table
-        
 
-def get_goto_table(grammar : Grammar):
+def get_action_table(grammar : Grammar):
     table = grammar.dump_table()
     state_name = grammar.dump_state_names()
     symbols = {'terminals': grammar._terminals, 'non_terminals': grammar._non_terminals}
+    return _get_action_table(table, state_name, symbols)
+        
 
+def _get_goto_table(table, state_name, symbols):
     goto_table = Table(title="GOTO Table")
     goto_table.add_column("State", justify="center", style="cyan", no_wrap=True)
     for symbol in symbols['non_terminals']:
@@ -60,8 +60,13 @@ def get_goto_table(grammar : Grammar):
         goto_table.add_row(*row)
     return goto_table
 
-def get_first_table(grammar : Grammar):
-    first_set = grammar.get_first_set()
+def get_goto_table(grammar : Grammar):
+    table = grammar.dump_table()
+    state_name = grammar.dump_state_names()
+    symbols = {'terminals': grammar._terminals, 'non_terminals': grammar._non_terminals}
+    return _get_goto_table(table, state_name, symbols)
+
+def _get_first_table(first_set):
     first_table = Table(title="First Set")
     first_table.add_column("sym", justify="left", style="cyan", no_wrap=True)
     first_table.add_column("First Set", justify="left", style="green")
@@ -70,8 +75,10 @@ def get_first_table(grammar : Grammar):
         first_table.add_row(str(symbol), ', '.join([str(x) for x in first]))
     return first_table
 
-def get_follow_table(grammar : Grammar):
-    follow_set = grammar.get_follow_set()
+def get_first_table(grammar : Grammar):
+    return _get_first_table(grammar.get_first_set())
+
+def _get_follow_table(follow_set):
     follow_table = Table(title="Follow Set")
     follow_table.add_column("sym", justify="left", style="cyan", no_wrap=True)
     follow_table.add_column("Follow Set", justify="left", style="green")
@@ -80,15 +87,60 @@ def get_follow_table(grammar : Grammar):
         follow_table.add_row(str(symbol), ', '.join([str(x) for x in follow]))
     return follow_table
 
-def get_grammar_table(grammar: Grammar):
-    productions = grammar.productions
+def get_follow_table(grammar : Grammar):
+    return _get_follow_table(grammar.get_follow_set())
+
+def _get_grammar_table(productions):
     grammar_table = Table(title="Grammar")
     grammar_table.add_column("Production", justify="left", style="cyan", no_wrap=True)
     for production in productions:
         grammar_table.add_row(str(production))
     return grammar_table
 
+def get_grammar_table(grammar: Grammar):
+    return _get_grammar_table(grammar.productions)
 
+def get_all_info(grammar: Grammar):
+    table = grammar.dump_table()
+    state_name = grammar.dump_state_names()
+    symbols = {'terminals': grammar._terminals, 'non_terminals': grammar._non_terminals}
+    first_set = grammar.get_first_set()
+    follow_set = grammar.get_follow_set()
+    productions = grammar.productions
+    
+    action_table = _get_action_table(table, state_name, symbols)
+    goto_table = _get_goto_table(table, state_name, symbols)
+    first_table = _get_first_table(first_set)
+    follow_table = _get_follow_table(follow_set)
+    grammar_table = _get_grammar_table(productions)
+    
+    
+    layout = Layout()
+    
+    layout.split_row(
+        Layout(name="left"),
+        Layout(name="right"),
+    )
+
+
+    left_layout = Layout()
+    right_layout = Layout()
+    
+    left_layout.split_row(
+        grammar_table,
+        first_table,
+        follow_table,
+    )
+    right_layout.split_row(
+        action_table, goto_table
+    )
+    
+    upper_panel = Panel(left_layout, title="Grammar")
+    lower_panel = Panel(right_layout, title="Table")
+    layout['left'].update(upper_panel)
+    layout['right'].update(lower_panel)
+    
+    return layout
 
 def show_grammar(grammar : Grammar):
     productions = grammar.dump_productions()
@@ -115,13 +167,6 @@ def show_parse_result(grammar: Grammar, result: list):
     return table
 
 
-def print_tree(node: Node, level=0):
-    if node is None:
-        return
-    print(' ' * 4 * level + '->', node.symbol)
-    for child in node.children:
-        print_tree(child, level + 1)
-        
 def first_traverse(node: Node, method, *args):
     if node is None:
         return
@@ -129,12 +174,12 @@ def first_traverse(node: Node, method, *args):
     for child in node.children:
         first_traverse(child, method, *args)
 
-def get_node_info(node: Node, style = None):
+def format_node(node: Node, style = None):
     if style == None:
         style = 'fill: "#f8f8f8", stroke: "#4d90fe"'
     return f'{{ key:{get_hash_digest(node)}, text: "{str(node.symbol)}", {style}, parent: {get_hash_digest(node.parent)}}}'
 
 def tree2hash(root: Node):
     dump_table = []
-    first_traverse(root, lambda x, table: table.append(get_node_info(x)), dump_table)
+    first_traverse(root, lambda x, table: table.append(format_node(x)), dump_table)
     return dump_table
