@@ -24,6 +24,7 @@ if __name__ == "__main__":
     ap.add_argument('filename', type=str, help='input file')
     ap.add_argument('-v', '--verbose', action='store_true', help='verbose mode')
     ap.add_argument('-o', '--output', type=str, help='output file path', default='./outputs/')
+    ap.add_argument('-s', '--stdout', action='store_true', help='print to stdout')
     
     args = ap.parse_args()
     filename = args.filename
@@ -54,7 +55,9 @@ if __name__ == "__main__":
         token_table.add_column("Value", style="green")
         for token in tokens:
             token_table.add_row(token.type.name, str(token.value))
-
+    if args.stdout:
+        for token in tokens:
+            print(f"{token.type.name}: {token.value}")
     # Save tokens to file
     token_filename = args.output + filename.split('/')[-1] + '.out'
     with open(token_filename, "w") as f:
