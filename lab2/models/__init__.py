@@ -326,7 +326,8 @@ class Item(Production):
         if self._str is None:
             if self.lookahead is None:
                 self._str = f'{self.head} -> {" ".join([str(x) for x in self.body[:self.dot_index]] + [DOT] + [str(x) for x in self.body[self.dot_index:]])}'
-            self._str = f'{self.head} -> {" ".join([str(x) for x in self.body[:self.dot_index]] + [DOT] + [str(x) for x in self.body[self.dot_index:]])}, {"".join([str(x) for x in self.lookahead])}'
+            else:
+                self._str = f'{self.head} -> {" ".join([str(x) for x in self.body[:self.dot_index]] + [DOT] + [str(x) for x in self.body[self.dot_index:]])}, {"".join([str(x) for x in self.lookahead])}'
         
         return self._str
     def __repr__(self):

@@ -3,7 +3,7 @@
 # test first set parse
 # test follow set parse
 
-from models import Symbol, Production, Grammar, Item
+from models import Symbol, Production, Grammar, Item, DOT
 
 def test_symbol():
     s1 = Symbol('a')
@@ -66,10 +66,10 @@ def test_item():
     i3 = Item(p1, 2)
     assert i1 == i2
     assert i1 != i3
-    assert str(i1) == 'S -> a . b c'
-    assert str(i3) == 'S -> a b . c'
-    assert repr(i1) == 'S -> a . b c'
-    assert repr(i3) == 'S -> a b . c'
+    assert str(i1) == f'S -> a {DOT} b c'
+    assert str(i3) == f'S -> a b {DOT} c'
+    assert repr(i1) == f'S -> a {DOT} b c'
+    assert repr(i3) == f'S -> a b {DOT} c'
     assert hash(i1) == hash(i2)
     assert hash(i1) != hash(i3)
     
