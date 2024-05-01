@@ -1,0 +1,86 @@
+<html>
+<head>
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+    <style type="text/css">
+        #mynetwork {
+            width: 600px;
+            height: 600px;
+            border: 1px solid lightgray;
+        }
+    </style>
+</head>
+<body>
+<div id="mynetwork"></div>
+
+<script type="text/javascript">
+    // create an array with nodes
+    var nodes = new vis.DataSet({{ nodes }});
+
+    // create an array with edges
+    var edges = new vis.DataSet({{ edges }});
+
+    // Let first node fix on the top
+    nodes.update({id: "0", fixed: true, x: 0, y: 0});
+
+    // create a network
+    var container = document.getElementById('mynetwork');
+
+    // provide the data in the vis format
+    var data = {
+        nodes: nodes,
+        edges: edges
+    };
+    var options = {
+        nodes: {
+            shape: 'box',
+            shapeProperties: {
+                borderRadius: 2
+            },
+            font: {
+              align: 'left'
+            },
+            color: {
+                border: 'black',
+                background: 'white',
+                highlight: {
+                    border: 'black',
+                    background: 'white'
+                },
+                hover: {
+                    border: 'blue',
+                    background: 'white'
+                }
+            }
+        },
+        edges: {
+            smooth: {
+                type: 'discret',
+                forceDirection: 'none',
+                roundness: 0.8
+            },
+            arrows: 'to',
+        },
+        layout: {
+            hierarchical: {
+              direction: 'UD',
+              sortMethod: 'directed',
+              levelSeparation: 200,
+              nodeSpacing: 100,
+              treeSpacing: 200,
+              blockShifting: true,
+              edgeMinimization: true,
+              parentCentralization: true,
+            },
+        },
+        interaction: {
+          hover: true
+        }
+    };
+
+
+    // initialize your network!
+    var network = new vis.Network(container, data, options);
+</script>
+</body>
+</html>

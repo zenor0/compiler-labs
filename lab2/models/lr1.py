@@ -32,7 +32,7 @@ class LR1(Grammar):
             for sym in self._non_terminals + self._terminals:
                 new_state = self.goto(state, sym)
                 if new_state:
-                    self.state_transition.append((state.__hash__(), sym, new_state.__hash__()))
+                    self.state_transition.append((state, sym, new_state))
                     if new_state not in self.states:
                         new_state = self.calc_closure(new_state)
                         self.states.append(new_state)
@@ -93,21 +93,21 @@ class LR1(Grammar):
     def dump_table(self):
         state_table = {}
         for state in self.states:
-            state_table[get_hash_digest(state)] = {}
+            state_table[state] = {}
             for item in state.states:
                 if item.is_reduce():
                     if item.head != self.start_symbol:
-                        state_table[get_hash_digest(state)][item.lookahead[0]] = Behavior(Action.REDUCE, self.productions.index(item.get_production()))
+                        state_table[state][item.lookahead[0]] = Behavior(Action.REDUCE, self.productions.index(item.get_production()))
                     else:
-                        state_table[get_hash_digest(state)][Symbol(END_OF_INPUT)] = Behavior(Action.ACCEPT, 0)
+                        state_table[state][Symbol(END_OF_INPUT)] = Behavior(Action.ACCEPT, 0)
                 else:
                     next_sym = item.next_symbol()
                     if next_sym in self._terminals:
                         new_state = self.goto(state, next_sym)
-                        state_table[get_hash_digest(state)][next_sym] = Behavior(Action.SHIFT, get_hash_digest(new_state))
+                        state_table[state][next_sym] = Behavior(Action.SHIFT, new_state)
                     elif next_sym in self._non_terminals:
                         new_state = self.goto(state, next_sym)
-                        state_table[get_hash_digest(state)][next_sym] = Behavior(Action.GOTO, get_hash_digest(new_state))
+                        state_table[state][next_sym] = Behavior(Action.GOTO, new_state)
         return state_table
 
 
@@ -116,7 +116,7 @@ class LR1(Grammar):
         state_name = {}
         for index, state in enumerate(self.states):
             info.append(f'State {index}: {state}')
-            state_name[state.__hash__()] = f'State {index}'
+            state_name[state] = f'State {index}'
         for state_from, by_sym, state_to in self.state_transition:
             info.append(f'{state_name[state_from]} -- {by_sym} -- {state_name[state_to]}')
         return '\n'.join(info)
@@ -129,17 +129,3 @@ class LR1(Grammar):
 
     def __hash__(self):
         return hash(str(self.states))
-
-    def to_json(self):
-        states = []
-        for index, state in enumerate(self.states):
-            state_info = {}
-            state_info["key"] = hash(state)
-            state_info["text"] = "I{}\n".format(index) + ", \n".join(str(x) for x in state.states)
-            states.append(state_info)
-
-        state_transition = []
-        for f, s, t in self.state_transition:
-            state_transition.append({"from": f, "to": t, "text": s})
-
-        return states, state_transition

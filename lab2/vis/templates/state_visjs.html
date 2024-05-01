@@ -1,0 +1,84 @@
+<html>
+<head>
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+    <style type="text/css">
+        #mynetwork {
+            width: 600px;
+            height: 600px;
+            border: 1px solid lightgray;
+        }
+    </style>
+</head>
+<body>
+<div id="mynetwork"></div>
+
+<script type="text/javascript">
+    // create an array with nodes
+    var nodes = new vis.DataSet({{ states }});
+
+    // create an array with edges
+    var edges = new vis.DataSet({{ transitions }});
+
+    // Let first node fix on the top
+    nodes.update({id: "0", fixed: true, x: 0, y: 0});
+
+    // create a network
+    var container = document.getElementById('mynetwork');
+
+    // provide the data in the vis format
+    var data = {
+        nodes: nodes,
+        edges: edges
+    };
+    var options = {
+        nodes: {
+            shape: 'box',
+            shapeProperties: {
+                borderRadius: 2
+            },
+            font: {
+              align: 'left'
+            },
+            color: {
+                border: 'black',
+                background: 'white',
+                highlight: {
+                    border: 'black',
+                    background: 'white'
+                },
+                hover: {
+                    border: 'blue',
+                    background: 'white'
+                }
+            }
+        },
+        edges: {
+            smooth: {
+                type: 'discret',
+                forceDirection: 'none',
+                roundness: 0.8
+            },
+            arrows: 'to',
+        },
+        physics: {
+          enabled: true,
+          barnesHut: {
+            springLength: 150,
+          },
+          wind: {
+            x: 0.2,
+            y: 0.0,
+          }
+        },
+        interaction: {
+          hover: true
+        }
+    };
+
+
+    // initialize your network!
+    var network = new vis.Network(container, data, options);
+</script>
+</body>
+</html>

@@ -5,7 +5,7 @@ import pickle
 
 EPSILON = '<epsilon>'
 END_OF_INPUT = '$'
-DOT = '.'
+DOT = '·'
 
 class Symbol:
     EPSILON = EPSILON
@@ -185,7 +185,7 @@ class Grammar:
     def dump_state_names(self):
         state_name = {}
         for index, state in enumerate(self.states):
-            state_name[get_hash_digest(state)] = f'{index}'
+            state_name[state] = f'{index}'
         return state_name
 
     def dump(self):
@@ -212,7 +212,7 @@ class Grammar:
                 break
             action = table[state_stack[-1]][input[input_index]]
             if action.action == Action.SHIFT:
-                result.append({'state': state_stack.copy(), 'symbol': symbol_stack.copy(), 'input': input[input_index:], 'action': f'Shift {state_name_map[action.value]}'})
+                result.append({'state': state_stack.copy(), 'symbol': symbol_stack.copy(), 'input': input[input_index:], 'action': f'Shift {action.value}'})
                 state_stack.append(action.value)
                 symbol_stack.append(input[input_index])
                 input_index += 1
@@ -236,7 +236,6 @@ class Grammar:
     
     def parse_node(self, input: str):
         table = self.dump_table()
-        state_name_map = self.dump_state_names()
         
         input = [Node(Symbol(x)) for x in input.split()]
         input += [Node(Symbol(END_OF_INPUT))]
@@ -249,9 +248,15 @@ class Grammar:
         pop_history = []
         while True:
             input_ch = input[input_index]
-            action = table[state_stack[-1]][input[input_index].symbol]
+            try:
+                action = table[state_stack[-1]][input[input_index].symbol]
+            except:
+                result.append({'state': state_stack.copy(), 'symbol': symbol_stack.copy(), 'input': input[input_index:], 'action': 'Unknown symbol'})
+                print("state doesn't exist")
+                break
+            
             if action.action == Action.SHIFT:
-                result.append({'state': state_stack.copy(), 'symbol': symbol_stack.copy(), 'input': input[input_index:], 'action': f'Shift {state_name_map[action.value]}'})
+                result.append({'state': state_stack.copy(), 'symbol': symbol_stack.copy(), 'input': input[input_index:], 'action': f'Shift {action.value}'})
                 state_stack.append(action.value)
                 symbol_stack.append(input[input_index])
                 input_index += 1
@@ -282,7 +287,7 @@ class Grammar:
             else:
                 result.append({'state': state_stack.copy(), 'symbol': symbol_stack.copy(), 'input': input[input_index:], 'action': 'Error'})
                 break
-        return result, symbol_stack
+        return result, symbol_stack[1:]
     
     def get_first_set(self):
         return self._first.copy()
@@ -320,7 +325,7 @@ class Item(Production):
     def __str__(self):
         if self.lookahead is None:
             return f'{self.head} -> {" ".join([str(x) for x in self.body[:self.dot_index]] + [DOT] + [str(x) for x in self.body[self.dot_index:]])}'
-        return f'{self.head} -> {" ".join([str(x) for x in self.body[:self.dot_index]] + [DOT] + [str(x) for x in self.body[self.dot_index:]])} forward: {self.lookahead}'
+        return f'{self.head} -> {" ".join([str(x) for x in self.body[:self.dot_index]] + [DOT] + [str(x) for x in self.body[self.dot_index:]])}, {"".join([str(x) for x in self.lookahead])}'
     
     def __repr__(self):
         return self.__str__()
@@ -354,7 +359,7 @@ class State:
         return f'{self.states}'
     
     def __repr__(self):
-        return self.kernel
+        return get_hash_digest(self)
     
     def __eq__(self, other):
         return hash(self) == hash(other)

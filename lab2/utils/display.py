@@ -148,9 +148,7 @@ def show_grammar(grammar : Grammar):
         print(production)
 
 
-def show_parse_result(grammar: Grammar, result: list):
-    state_name_map = grammar.dump_state_names()
-    
+def get_parse_table(state_name_map: dict, result: list):
     table = Table(title="Parse Result")
     table.add_column("State", justify="left", style="cyan", no_wrap=True)
     table.add_column("Symbol", justify="left", style="yellow", no_wrap=True)
@@ -165,21 +163,3 @@ def show_parse_result(grammar: Grammar, result: list):
         action = obj['action']
         table.add_row(str(state), str(symbol), str(input), action)
     return table
-
-
-def first_traverse(node: Node, method, *args):
-    if node is None:
-        return
-    method(node, *args)
-    for child in node.children:
-        first_traverse(child, method, *args)
-
-def format_node(node: Node, style = None):
-    if style == None:
-        style = 'fill: "#f8f8f8", stroke: "#4d90fe"'
-    return f'{{ key:{get_hash_digest(node)}, text: "{str(node.symbol)}", {style}, parent: {get_hash_digest(node.parent)}}}'
-
-def tree2hash(root: Node):
-    dump_table = []
-    first_traverse(root, lambda x, table: table.append(format_node(x)), dump_table)
-    return dump_table
