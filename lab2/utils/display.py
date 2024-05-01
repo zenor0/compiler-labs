@@ -31,7 +31,7 @@ def _get_action_table(table, state_name, symbols, productions: list):
     return action_table
 
 def get_action_table(grammar : Grammar):
-    table = grammar.dump_table()
+    table, _ = grammar.dump_table()
     state_name = grammar.dump_state_names()
     symbols = {'terminals': grammar._terminals, 'non_terminals': grammar._non_terminals}
     productions = grammar.productions
@@ -56,7 +56,7 @@ def _get_goto_table(table, state_name, symbols):
     return goto_table
 
 def get_goto_table(grammar : Grammar):
-    table = grammar.dump_table()
+    table, _ = grammar.dump_table()
     state_name = grammar.dump_state_names()
     symbols = {'terminals': grammar._terminals, 'non_terminals': grammar._non_terminals}
     return _get_goto_table(table, state_name, symbols)

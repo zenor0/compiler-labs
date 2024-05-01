@@ -20,7 +20,7 @@ class LR1(Grammar):
         _, conflicts = self.dump_table()
         if conflicts:
             for k, v in conflicts.items():
-                logger.error(f'Conflict in state {k[0]} on symbol "{k[1]}" between {v}')
+                logger.error(f'Conflict in state {get_hash_digest(k[0])} on symbol "{k[1]}" between {v}')
         logger.debug('Done checking for conflicts')
 
        

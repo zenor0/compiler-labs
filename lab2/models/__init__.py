@@ -10,6 +10,7 @@ EPSILON = '<epsilon>'
 END_OF_INPUT = '$'
 DOT = '·'
 
+
 class Symbol:
     EPSILON = EPSILON
     END = END_OF_INPUT
@@ -30,6 +31,24 @@ class Symbol:
 
     def __hash__(self):
         return self._hash
+    
+class Node:
+    def __init__(self, symbol: Symbol, value = None):
+        if isinstance(symbol, str):
+            symbol = Symbol(symbol)
+        self.symbol = symbol
+        self.parent = None
+        self.children = []
+        self.value = value
+
+    def add_child(self, child):
+        self.children.append(child)
+        
+    def set_parent(self, parent):
+        self.parent = parent
+    
+    def __repr__(self):
+        return self.symbol.value
 
 class Production:
     def __init__(self, head:Symbol, body: List[Symbol]):
@@ -248,11 +267,12 @@ class Grammar:
     
     
     
-    def parse_node(self, input: str):
+    def parse_node(self, input: str | list[Node]):
         logger.info(f'Parsing input "{input}"')
         table, _ = self.dump_table()
         
-        input = [Node(Symbol(x)) for x in input.split()]
+        if isinstance(input, str):
+            input = [Node(Symbol(x)) for x in input.split()]
         input += [Node(Symbol(END_OF_INPUT))]
         result = []
         
@@ -416,17 +436,3 @@ class Behavior:
         return hash(self) == hash(value)
 
 
-class Node:
-    def __init__(self, symbol: Symbol):
-        self.symbol = symbol
-        self.parent = None
-        self.children = []
-
-    def add_child(self, child):
-        self.children.append(child)
-        
-    def set_parent(self, parent):
-        self.parent = parent
-    
-    def __repr__(self):
-        return self.symbol.value
