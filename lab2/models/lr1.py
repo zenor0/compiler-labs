@@ -1,7 +1,7 @@
 from typing import List
 from utils.hash import get_hash_digest
 from . import Grammar, Production, Symbol, Item, State, Behavior, Action
-from . import EPSILON, END_OF_INPUT, DOT
+from . import EPSILON, END_OF_INPUT, DOT, logger
 
 class LR1(Grammar):
     states : List[State]
@@ -14,13 +14,11 @@ class LR1(Grammar):
 
         self.init_states()
         
-        conflicts = self.check_conflict()
+        _, conflicts = self.dump_table()
         if conflicts:
-            print('Conflicts:')
-            for conflict in conflicts:
-                print(conflict)
-        else:
-            print('No conflicts')
+            for k, v in conflicts.items():
+                logger.error(f'Conflict in state {k[0]} on symbol "{k[1]}" between {v}')
+
        
     def init_states(self):
         self.states = []
@@ -92,23 +90,36 @@ class LR1(Grammar):
     
     def dump_table(self):
         state_table = {}
+        
+        conflicts = {}
+        def write_to_table(state, symbol, behavior):
+            if state_table[state].get(symbol) is None:
+                state_table[state][symbol] = behavior
+            elif state_table[state].get(symbol) == behavior:
+                pass
+            else:
+                if (state, symbol) not in conflicts:
+                    conflicts[(state, symbol)] = [state_table[state][symbol]]
+                conflicts[(state, symbol)] += [behavior]
+                
+        
         for state in self.states:
             state_table[state] = {}
             for item in state.states:
                 if item.is_reduce():
                     if item.head != self.start_symbol:
-                        state_table[state][item.lookahead[0]] = Behavior(Action.REDUCE, self.productions.index(item.get_production()))
+                        write_to_table(state, item.lookahead[0], Behavior(Action.REDUCE, item.get_production()))
                     else:
-                        state_table[state][Symbol(END_OF_INPUT)] = Behavior(Action.ACCEPT, 0)
+                        write_to_table(state, Symbol(END_OF_INPUT), Behavior(Action.ACCEPT, 0))
                 else:
                     next_sym = item.next_symbol()
                     if next_sym in self._terminals:
                         new_state = self.goto(state, next_sym)
-                        state_table[state][next_sym] = Behavior(Action.SHIFT, new_state)
+                        write_to_table(state, next_sym, Behavior(Action.SHIFT, new_state))
                     elif next_sym in self._non_terminals:
                         new_state = self.goto(state, next_sym)
-                        state_table[state][next_sym] = Behavior(Action.GOTO, new_state)
-        return state_table
+                        write_to_table(state, next_sym, Behavior(Action.GOTO, new_state))
+        return state_table, conflicts
 
 
     def __str__(self):

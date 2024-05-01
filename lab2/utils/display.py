@@ -6,32 +6,26 @@ from rich.panel import Panel
 from models import Action, END_OF_INPUT, Symbol, Grammar, Node
 from utils.hash import get_hash_digest
 
-def _get_action_table(table, state_name, symbols):
+def _get_action_table(table, state_name, symbols, productions: list):
     action_table = Table(title="Action Table")
     action_table.add_column("State", justify="center", style="cyan", no_wrap=True)
     for symbol in symbols['terminals']:
         action_table.add_column(str(symbol), justify="center", style="red")
     
     for state, actions in table.items():
-        row = [state_name[state]]
         action_row = [state_name[state]]
         for symbol in symbols['terminals']:
             if symbol in actions:
                 if actions[symbol].action == Action.SHIFT:
                     content = f'S{state_name[actions[symbol].value]}'
-                    row.append(content)
                     action_row.append(content)
                 elif actions[symbol].action == Action.REDUCE:
-                    row.append(f'R{actions[symbol].value}')
-                    action_row.append(f'R{actions[symbol].value}')
+                    action_row.append(f'R{productions.index(actions[symbol].value)}')
                 elif actions[symbol].action == Action.ACCEPT:
-                    row.append('ACC')
                     action_row.append('ACC')
                 elif actions[symbol].action == Action.GOTO:
-                    row.append(f'G{actions[symbol].value}')
                     action_row.append(f'G{actions[symbol].value}')
             else:
-                row.append('')
                 action_row.append('')
         action_table.add_row(*action_row)
     return action_table
@@ -40,7 +34,8 @@ def get_action_table(grammar : Grammar):
     table = grammar.dump_table()
     state_name = grammar.dump_state_names()
     symbols = {'terminals': grammar._terminals, 'non_terminals': grammar._non_terminals}
-    return _get_action_table(table, state_name, symbols)
+    productions = grammar.productions
+    return _get_action_table(table, state_name, symbols, productions)
         
 
 def _get_goto_table(table, state_name, symbols):
@@ -101,14 +96,14 @@ def get_grammar_table(grammar: Grammar):
     return _get_grammar_table(grammar.productions)
 
 def get_all_info(grammar: Grammar):
-    table = grammar.dump_table()
+    table, _ = grammar.dump_table()
     state_name = grammar.dump_state_names()
     symbols = {'terminals': grammar._terminals, 'non_terminals': grammar._non_terminals}
     first_set = grammar.get_first_set()
     follow_set = grammar.get_follow_set()
     productions = grammar.productions
     
-    action_table = _get_action_table(table, state_name, symbols)
+    action_table = _get_action_table(table, state_name, symbols, productions)
     goto_table = _get_goto_table(table, state_name, symbols)
     first_table = _get_first_table(first_set)
     follow_table = _get_follow_table(follow_set)
