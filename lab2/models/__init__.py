@@ -3,6 +3,9 @@ from enum import Enum
 from utils.hash import get_hash_digest
 import pickle
 
+import logging
+logger = logging.getLogger('rich')
+
 EPSILON = '<epsilon>'
 END_OF_INPUT = '$'
 DOT = '·'
@@ -74,6 +77,16 @@ class Grammar:
         
         self.init_first()
         self.init_follow()
+        
+        logger.info(f'Start to build a grammar...')
+        logger.debug(f'Productions: \t"{productions}"')
+        logger.debug(f'Non-terminals: \t"{self._non_terminals}"')
+        logger.debug(f'Terminals: \t"{self._terminals}"')
+        logger.debug(f'Start symbol: \t"{self.start_symbol}"')
+        logger.debug(f'First set: \t"{self._first}"')
+        logger.debug(f'Follow set: \t"{self._follow}"')
+        logger.info(f'Grammar built successfully')
+        
         
     def init_first(self):
         self._first = {}
@@ -172,11 +185,13 @@ class Grammar:
         return follow_set
     
     def augment_grammar(self, productions: List[Production]):
+        logger.info(f'Augmenting grammar...')
         new_start = productions[0].head
         while new_start in [x.head for x in productions]:
             new_start = Symbol(new_start.value + "'")
         new_production = Production(new_start, [productions[0].head])
         productions.insert(0, new_production)
+        logger.debug(f'Augmented grammar: {productions}, new start symbol: "{new_start}"')
         return productions, new_start
 
     
@@ -193,7 +208,8 @@ class Grammar:
         return pickle.loads(data)
 
     def parse(self, input: str):
-        table = self.dump_table()
+        logger.info(f'Parsing input "{input}"')
+        table, _ = self.dump_table()
         state_name_map = self.dump_state_names()
         
         input = [Symbol(x) for x in input.split()]
@@ -233,7 +249,8 @@ class Grammar:
     
     
     def parse_node(self, input: str):
-        table = self.dump_table()
+        logger.info(f'Parsing input "{input}"')
+        table, _ = self.dump_table()
         
         input = [Node(Symbol(x)) for x in input.split()]
         input += [Node(Symbol(END_OF_INPUT))]
@@ -243,14 +260,13 @@ class Grammar:
         symbol_stack = [Node(Symbol(END_OF_INPUT))]
         input_index = 0
         
-        pop_history = []
         while True:
-            input_ch = input[input_index]
             try:
                 action = table[state_stack[-1]][input[input_index].symbol]
             except:
                 result.append({'state': state_stack.copy(), 'symbol': symbol_stack.copy(), 'input': input[input_index:], 'action': 'Unknown symbol'})
-                print("state doesn't exist")
+                available_symbols = list(table[state_stack[-1]].keys())
+                logger.error(f'Unknown symbol "{input[input_index].symbol}" at index {input_index}, did you mean "{[x for x in available_symbols if x in self._terminals and x != Symbol(END_OF_INPUT)]}" | available symbols: {available_symbols}')
                 break
             
             if action.action == Action.SHIFT:
@@ -259,7 +275,7 @@ class Grammar:
                 symbol_stack.append(input[input_index])
                 input_index += 1
             elif action.action == Action.REDUCE:
-                production = self.productions[action.value]
+                production = action.value
                 result.append({'state': state_stack.copy(), 'symbol': symbol_stack.copy(), 'input': input[input_index:], 'action': f'Reduce {production}'})
                 
                 popped_node = []
@@ -276,7 +292,6 @@ class Grammar:
                 for node in popped_node:
                     node.parent = new_symbol
                 symbol_stack.append(new_symbol)
-                pop_history.append(popped_node)
                 
                 state_stack.append(table[state_stack[-1]][symbol_stack[-1].symbol].value)
             elif action.action == Action.ACCEPT:
@@ -285,6 +300,9 @@ class Grammar:
             else:
                 result.append({'state': state_stack.copy(), 'symbol': symbol_stack.copy(), 'input': input[input_index:], 'action': 'Error'})
                 break
+        logger.debug('Parse result:')
+        logger.debug(',\n'.join([str(x) for x in result]))
+        logger.info(f'Parsing completed')
         return result, symbol_stack[1:]
     
     def get_first_set(self):
@@ -380,14 +398,22 @@ class Action(Enum):
     GOTO = 4
 
 class Behavior:
+    _hash = None
     def __init__(self, action: Action, value: int):
         self.action = action
         self.value = value
+        self._hash = hash((action, value))
 
     def __str__(self):
         return f'{self.action.name} {self.value}'
     def __repr__(self) -> str:
         return self.__str__()
+    
+    def __hash__(self):
+        return self._hash
+    
+    def __eq__(self, value: object) -> bool:
+        return hash(self) == hash(value)
 
 
 class Node:

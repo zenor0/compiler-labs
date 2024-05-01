@@ -14,10 +14,14 @@ class LR1(Grammar):
 
         self.init_states()
         
+        logger.info('Done initializing LR1')
+        
+        logger.debug('Checking for conflicts')
         _, conflicts = self.dump_table()
         if conflicts:
             for k, v in conflicts.items():
                 logger.error(f'Conflict in state {k[0]} on symbol "{k[1]}" between {v}')
+        logger.debug('Done checking for conflicts')
 
        
     def init_states(self):

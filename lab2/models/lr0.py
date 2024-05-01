@@ -13,11 +13,16 @@ class LR0(Grammar):
         super().__init__(productions)
 
         self.init_states()
-    
+        
+        logger.info('Done initializing LR0')
+        
+        
+        logger.debug('Checking for conflicts')
         _, conflicts = self.dump_table()
         if conflicts:
             for k, v in conflicts.items():
                 logger.error(f'Conflict in state {k[0]} on symbol "{k[1]}" between {v}')
+        logger.debug('Done checking for conflicts')
 
     def calc_closure(self, state: State):
         added = True
@@ -87,7 +92,7 @@ class LR0(Grammar):
         state_table = {}
         
         conflicts = {}
-        def write_to_table(state, symbol, behavior):
+        def _write_to_table(state, symbol, behavior):
             if state_table[state].get(symbol) is None:
                 state_table[state][symbol] = behavior
             elif state_table[state].get(symbol) == behavior:
@@ -104,17 +109,17 @@ class LR0(Grammar):
                 if item.is_reduce():
                     if item.head != self.start_symbol:
                         for sym in self._terminals:
-                            write_to_table(state, sym, Behavior(Action.REDUCE, item.get_production()))
+                            _write_to_table(state, sym, Behavior(Action.REDUCE, item.get_production()))
                     else:
-                        write_to_table(state, Symbol(END_OF_INPUT), Behavior(Action.ACCEPT, 0))
+                        _write_to_table(state, Symbol(END_OF_INPUT), Behavior(Action.ACCEPT, 0))
                 else:
                     next_sym = item.next_symbol()
                     if next_sym in self._terminals:
                         new_state = self.goto(state, next_sym)
-                        write_to_table(state, next_sym, Behavior(Action.SHIFT, new_state))
+                        _write_to_table(state, next_sym, Behavior(Action.SHIFT, new_state))
                     elif next_sym in self._non_terminals:
                         new_state = self.goto(state, next_sym)
-                        write_to_table(state, next_sym, Behavior(Action.GOTO, new_state))
+                        _write_to_table(state, next_sym, Behavior(Action.GOTO, new_state))
         return state_table, conflicts
     
     def dump_state_names(self):
