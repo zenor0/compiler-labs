@@ -19,10 +19,9 @@ def format_node(node: Node, grammar: Grammar, style = None):
     style_sheet = {
         'terminal': {'fill': 'white', 'stroke': 'green'},
         'non-terminal': {'fill': 'white', 'stroke': 'blue'},
-        'start': {'fill': 'black', 'stroke': 'green', 'color': 'white'},
-        'epsilon': {'fill': 'white', 'stroke': 'purple'},
+        'start': {'fill': 'black', 'stroke': 'black', 'color': 'white'},
+        'epsilon': {'fill': 'white', 'stroke': 'white'},
     }
-    print(node.symbol, grammar._terminals, grammar._non_terminals, grammar.productions[1].head)
     if node.symbol == grammar.productions[1].head:
         style = style | style_sheet['start']
     elif node.symbol == EPSILON:
@@ -46,6 +45,7 @@ def render_parse_tree(node_stack: Node | list[Node], grammar: Grammar):
     for list in [tree2hash(node, grammar) for node in node_stack]:
         node_list += list
 
+    node_list.reverse()
     env = Environment(loader=FileSystemLoader('./vis/templates'))
     template = env.get_template('tree.html')
     return template.render({ 'nodes': json.dumps(node_list) }), node_list
