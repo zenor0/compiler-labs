@@ -105,7 +105,7 @@ class LexicalParser:
         self.code = code
         self.tokens = []
     
-    def parse(self):
+    def parse(self) -> list[Token]:
         """ Parse the code and return the list of tokens
         
         Returns:
