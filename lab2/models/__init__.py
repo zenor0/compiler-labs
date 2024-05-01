@@ -12,6 +12,7 @@ class Symbol:
     END = END_OF_INPUT
     def __init__(self, name):
         self.value = name
+        self._hash = hash(name)
 
     def __str__(self):
         if self.value == EPSILON:
@@ -25,7 +26,7 @@ class Symbol:
         return hash(self) == hash(other)
 
     def __hash__(self):
-        return hash(str(self.value))
+        return self._hash
 
 class Production:
     def __init__(self, head:Symbol, body: List[Symbol]):
@@ -70,9 +71,6 @@ class Grammar:
         self._non_terminals = [x for x in non_terminals.values()]
         self._terminals = [x for x in terminals.values()]
         self._terminals += [Symbol(END_OF_INPUT)]
-        
-        # print('Non-terminals:', self._non_terminals)
-        # print('Terminals:', self._terminals)
         
         self.init_first()
         self.init_follow()
@@ -290,7 +288,7 @@ class Grammar:
         return result, symbol_stack[1:]
     
     def get_first_set(self):
-        return self._first.copy()
+        return self._first.copy()  
     
     def get_follow_set(self):
         return self._follow.copy()
@@ -311,6 +309,8 @@ class Grammar:
         return iter(self.productions)
 
 class Item(Production):
+    _hash = None
+    _str = None
     def __init__(self, production: Production, dot_index: int, lookahead: List[Symbol] = None):
         super().__init__(production.head, production.body)
         self.__original = production
@@ -323,10 +323,12 @@ class Item(Production):
         return self.__original
 
     def __str__(self):
-        if self.lookahead is None:
-            return f'{self.head} -> {" ".join([str(x) for x in self.body[:self.dot_index]] + [DOT] + [str(x) for x in self.body[self.dot_index:]])}'
-        return f'{self.head} -> {" ".join([str(x) for x in self.body[:self.dot_index]] + [DOT] + [str(x) for x in self.body[self.dot_index:]])}, {"".join([str(x) for x in self.lookahead])}'
-    
+        if self._str is None:
+            if self.lookahead is None:
+                self._str = f'{self.head} -> {" ".join([str(x) for x in self.body[:self.dot_index]] + [DOT] + [str(x) for x in self.body[self.dot_index:]])}'
+            self._str = f'{self.head} -> {" ".join([str(x) for x in self.body[:self.dot_index]] + [DOT] + [str(x) for x in self.body[self.dot_index:]])}, {"".join([str(x) for x in self.lookahead])}'
+        
+        return self._str
     def __repr__(self):
         return self.__str__()
 
@@ -334,7 +336,9 @@ class Item(Production):
         return hash(self) == hash(other)
 
     def __hash__(self):
-        return hash(str(self.head) + str(self.body) + str(self.dot_index) + str(self.lookahead))
+        if self._hash is None:
+            self._hash = hash((self.__original, self.dot_index , str(self.lookahead)))
+        return self._hash
 
     def next_symbol(self):
         if self.dot_index == len(self.body):
@@ -354,6 +358,7 @@ class State:
     def __init__(self, kernel: List[Item]):
         self.kernel = kernel
         self.states = kernel.copy()
+        self._hash = hash(str(kernel))
     
     def __str__(self):
         return f'{self.states}'
@@ -365,7 +370,7 @@ class State:
         return hash(self) == hash(other)
     
     def __hash__(self):
-        return hash(str(self.kernel))
+        return self._hash
 
 class Action(Enum):
     SHIFT = 1
