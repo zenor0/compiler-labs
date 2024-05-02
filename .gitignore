@@ -166,4 +166,4 @@ cython_debug/
 
 test_driver.py
 .vscode/
-outputs/*
+*/outputs/*

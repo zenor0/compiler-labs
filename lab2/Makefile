@@ -1,4 +1,4 @@
-input = ./data/sample.in
+input = ./data/grammar.txt
 
 run:
 	python3 main.py $(input)
