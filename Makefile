@@ -1,7 +1,6 @@
 VENV := venv
 
 install: requirements.txt
-	# 检测操作系统
 ifeq ($(OS),Windows_NT)
 	python -m venv $(VENV)
 	$(VENV)\Scripts\pip install -r requirements.txt
@@ -9,6 +8,12 @@ else
 	python3 -m venv $(VENV)
 	$(VENV)/bin/pip install -r requirements.txt
 endif
+	@echo "\033[0;31m"
+	@echo "WARNING: Please make sure to activate the virtual environment before running the application."
+	@echo "To activate the virtual environment, run the following command:"
+	@echo "source $(VENV)/bin/activate or something similar depending on your OS."
+	@echo "\033[0m"
+	@echo "Installation done!"
 
 .PHONY: clean
 clean:
