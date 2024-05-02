@@ -325,6 +325,10 @@ class Grammar:
         logger.info(f'Parsing completed')
         return result, symbol_stack[1:]
     
+    def dump_table(self):
+        logger.error('Method not implemented')
+        return
+    
     def get_first_set(self):
         return self._first.copy()  
     

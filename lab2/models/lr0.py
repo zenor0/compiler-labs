@@ -14,7 +14,6 @@ class LR0(Grammar):
 
         self.init_states()
         
-        logger.info('Done initializing LR0')
         
         
         logger.debug('Checking for conflicts')
@@ -24,6 +23,7 @@ class LR0(Grammar):
                 logger.error(f'Conflict in state {k[0]} on symbol "{k[1]}" between {v}')
         logger.debug('Done checking for conflicts')
 
+        logger.info('Done initializing LR0')
     def calc_closure(self, state: State):
         added = True
         while added:

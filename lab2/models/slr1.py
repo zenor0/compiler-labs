@@ -8,7 +8,6 @@ class SLR1(LR0):
     def __init__(self, productions: List[Production]):
         super().__init__(productions)
         
-        logger.info('Done initializing SLR1')
         
         logger.debug('Checking for conflicts')
         _, conflicts = self.dump_table()
@@ -17,6 +16,7 @@ class SLR1(LR0):
                 logger.error(f'Conflict in state {k[0]} on symbol "{k[1]}" between {v}')
         logger.debug('Done checking for conflicts')
     
+        logger.info('Done initializing SLR1')
     def dump_table(self):
         state_table = {}
         

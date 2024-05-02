@@ -14,7 +14,6 @@ class LR1(Grammar):
 
         self.init_states()
         
-        logger.info('Done initializing LR1')
         
         logger.debug('Checking for conflicts')
         _, conflicts = self.dump_table()
@@ -23,6 +22,7 @@ class LR1(Grammar):
                 logger.error(f'Conflict in state {get_hash_digest(k[0])} on symbol "{k[1]}" between {v}')
         logger.debug('Done checking for conflicts')
 
+        logger.info('Done initializing LR1')
        
     def init_states(self):
         self.states = []
