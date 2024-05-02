@@ -9,6 +9,7 @@ from rich import print
 from rich.logging import RichHandler
 from rich.columns import Columns
 from rich.syntax import Syntax
+from rich.panel import Panel
 
 # from rich import logging
 
@@ -17,6 +18,18 @@ logger = logging.getLogger('rich')
 logger.setLevel(logging.INFO)
 rich_handler = RichHandler()
 logger.addHandler(rich_handler)
+
+def change_file_extension(filename, new_ext):
+    # Split the filename into parts on the '.' character
+    parts = filename.rsplit('.', 1)
+    
+    # Check if there is an extension to replace
+    if len(parts) == 2:
+        # Replace the old extension with the new one
+        return parts[0] + '.' + new_ext
+    else:
+        # No extension found, add the new one
+        return filename + '.' + new_ext
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description='Lexical Parser')
@@ -59,7 +72,7 @@ if __name__ == "__main__":
         for token in tokens:
             print(f"{token.type.name}: {token.value}")
     # Save tokens to file
-    token_filename = args.output + filename.split('/')[-1] + '.out'
+    token_filename = args.output + change_file_extension(filename.split('/')[-1], 'out')
     with open(token_filename, "w") as f:
         for token in tokens:
             f.write(str(token)+"\n")
@@ -77,7 +90,7 @@ if __name__ == "__main__":
         elif token.type == _TOKEN_TYPE.NUMBER:
             number_list[token.value] = number_list.get(token.value, 0) + 1
     
-    symbol_filename = args.output + filename.split('/')[-1] + '.sym'
+    symbol_filename = args.output + change_file_extension(filename.split('/')[-1], 'sym')
     with open(symbol_filename, "w") as f:
         for k in keyword_list:
             f.write(f'KEYWORD {k}\n')
@@ -101,8 +114,9 @@ if __name__ == "__main__":
 
     if args.verbose:
         logger.debug("Showing tables:")
-        syntax = Syntax(code, "c", line_numbers=True, code_width=30)
-        columns = Columns([syntax, token_table, symbol_table])
+        syntax = Syntax(code, "c", line_numbers=True, word_wrap=True, code_width=60)
+        panel = Panel(syntax, title="Source code")
+        columns = Columns([panel, token_table, symbol_table])
         print(columns)
         
 
