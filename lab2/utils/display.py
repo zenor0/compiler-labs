@@ -2,6 +2,7 @@ from rich import print
 from rich.table import Table
 from rich.layout import Layout
 from rich.panel import Panel
+from rich.columns import Columns
 
 from models import Action, END_OF_INPUT, Symbol, Grammar, Node
 from utils.hash import get_hash_digest
@@ -130,6 +131,8 @@ def get_all_info(grammar: Grammar):
         action_table, goto_table
     )
     
+    column =  Columns([grammar_table, first_table, follow_table, action_table, goto_table])
+    return column
     upper_panel = Panel(left_layout, title="Grammar")
     lower_panel = Panel(right_layout, title="Table")
     layout['left'].update(upper_panel)
