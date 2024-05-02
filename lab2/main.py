@@ -13,6 +13,7 @@ from models.slr1 import SLR1
 from models.lr1 import LR1
 from utils import display
 from utils import reader
+from vis import *
 
 logger = logging.getLogger('rich')
 logger.setLevel(logging.INFO)
@@ -28,9 +29,10 @@ if __name__ == "__main__":
     ap.add_argument('-s', '--save-binary', type=str, help='save binary file', default=False)
     ap.add_argument('-l', '--load-binary', type=str, help='load binary file', default=False)
     ap.add_argument('-p', '--parse', type=str, help='parse string', default=False)
-    ap.add_argument('-v', '--verbose', action='store_true', help='verbose mode')
+    ap.add_argument('-d', '--debug', action='store_true', help='debug mode')
     ap.add_argument('-o', '--output-path', type=str, help='output file path', default='./outputs/')
     ap.add_argument('-t', '--stdout', action='store_true', help='print to stdout')
+    ap.add_argument('-v', '--visualize', action="store_true", help='visualize parse result')
     
     args = ap.parse_args()
 
@@ -39,14 +41,15 @@ if __name__ == "__main__":
     save_binary = args.save_binary
     load_binary = args.load_binary
     output_path = args.output_path
-    verbose = args.verbose
+    debug = args.debug
     stdout = args.stdout
     parse = args.parse
+    visualize = args.visualize
     
     
-    if verbose:
+    if debug:
         logger.setLevel(logging.DEBUG)
-        logger.debug("Verbose mode enabled.")
+        logger.debug("debug mode enabled.")
         logger.debug(f"Input file: {filename}")
     
     try:
@@ -81,9 +84,17 @@ if __name__ == "__main__":
     info = display.get_all_info(grammar)
     print(info)
     
+    if visualize:
+        logger.info("Visualizing state machine...")
+        html = render_state_machine(grammar)
+        
+        with open(output_path + 'state_machine.html', 'w') as f:
+            f.write(html)
+        logger.info("State machine saved to 'state_machine.html'")
+    
     if save_binary:
         binary = grammar.dump()
-        with open(output_path + save_binary, 'wb') as f:
+        with open(output_path + save_binary, 'w') as f:
             f.write(binary)
         
         logger.info(f"Grammar saved to {save_binary}")
@@ -99,6 +110,13 @@ if __name__ == "__main__":
         result_table = display.get_parse_table(grammar.dump_state_names(), result)
         print(result_table)
         logger.info("Parsing done.")
+        
+        if visualize:
+            logger.info("Visualizing parse tree...")
+            html, _ = render_parse_tree(stack, grammar)
+            with open(output_path + 'parse_tree.html', 'w') as f:
+                f.write(html)
+            logger.info("Parse tree saved to 'parse_tree.html'")
     
     
     logger.info('Done. Exiting...')
