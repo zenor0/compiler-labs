@@ -1,4 +1,4 @@
-from lab2.utils import reader
+from utils import reader
 from models import Production, Symbol
 
 def test_read_raw():
