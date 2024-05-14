@@ -12,7 +12,6 @@ def test_lr0():
     production = reader.read_grammar(grammar)
     parser = lr0.LR0(production)
     
-    # TO-DO
     expected_productions = [
         Grammar([
             Production(Symbol("S'"), [Symbol('·'), Symbol('S')]),
@@ -63,6 +62,3 @@ def test_lr0():
 
     ]
     assert parser.state_transition == expected_state_transition
-
-    #assert parser.state_transition[0]==
-# test_lr0()
