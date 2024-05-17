@@ -6,6 +6,7 @@ import logging
 from rich import print
 from rich.logging import RichHandler
 from rich.columns import Columns
+from rich.console import Console
 
 from models import *
 from models.lr0 import LR0
@@ -19,6 +20,9 @@ logger = logging.getLogger('rich')
 logger.setLevel(logging.INFO)
 rich_handler = RichHandler()
 logger.addHandler(rich_handler)
+
+console_width = 300
+console = Console(record=True, width=console_width)
 
 
 if __name__ == "__main__":
@@ -82,7 +86,11 @@ if __name__ == "__main__":
     logger.info("Parsing done.")
     logger.info("Grammar info:")
     info = display.get_all_info(grammar)
-    print(info)
+    console.print(info)
+    
+    
+    with open(output_path + 'result.txt', 'w') as f:
+        print(info, file=f)
     
     if visualize:
         logger.info("Visualizing state machine...")
@@ -100,15 +108,17 @@ if __name__ == "__main__":
         logger.info(f"Grammar saved to {save_binary}")
         
     if stdout:
-        print(display.get_all_info(grammar))
+        console.print(display.get_all_info(grammar))
 
     if parse:
+        console_parse = Console(record=True, width=80)
         logger.info(f"Parsing string: {parse}")
         logger.debug("Parsing...")
         result, stack = grammar.parse_node(parse)
         
         result_table = display.get_parse_table(grammar.dump_state_names(), result)
-        print(result_table)
+        console_parse.print(f'Parsing sentence: {parse}')
+        console_parse.print(result_table)
         logger.info("Parsing done.")
         
         if visualize:
@@ -117,6 +127,7 @@ if __name__ == "__main__":
             with open(output_path + 'parse_tree.html', 'w') as f:
                 f.write(html)
             logger.info("Parse tree saved to 'parse_tree.html'")
-    
+        console_parse.save_svg(output_path+'parse_result.svg', title='语法分析结果')
     
     logger.info('Done. Exiting...')
+    console.save_svg(output_path+'results.svg', title='文法分析表生成结果')
