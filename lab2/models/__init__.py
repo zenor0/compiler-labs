@@ -33,13 +33,14 @@ class Symbol:
         return self._hash
     
 class Node:
-    def __init__(self, symbol: Symbol, value = None):
+    def __init__(self, symbol: Symbol, value = None, is_value = False):
         if isinstance(symbol, str):
             symbol = Symbol(symbol)
         self.symbol = symbol
         self.parent = None
         self.children = []
         self.value = value
+        self.is_value = is_value
 
     def add_child(self, child):
         self.children.append(child)

@@ -9,6 +9,12 @@ def first_traverse(node: Node, method, *args):
     if node is None:
         return
     method(node, *args)
+    # if node has value then create a new node to display
+    if node.value:
+        new_node = Node(node.value)
+        new_node.parent = node
+        new_node.is_value = True
+        method(new_node, *args)
     for child in node.children:
         first_traverse(child, method, *args)
 
@@ -21,6 +27,7 @@ def format_node(node: Node, grammar: Grammar, style = None):
         'non-terminal': {'fill': 'white', 'stroke': 'blue'},
         'start': {'fill': 'black', 'stroke': 'black', 'color': 'white'},
         'epsilon': {'fill': 'white', 'stroke': 'white'},
+        'value': {'fill': 'white', 'stroke': 'red'}
     }
     if node.symbol == grammar.productions[1].head:
         style = style | style_sheet['start']
@@ -30,10 +37,16 @@ def format_node(node: Node, grammar: Grammar, style = None):
         style = style | style_sheet['terminal']
     elif node.symbol in grammar._non_terminals:
         style = style | style_sheet['non-terminal']
+    elif node.is_value:
+        style = style | style_sheet['value']
     else:
         style = style | {'fill': 'grey', 'stroke': 'black'}
     
-    return {'key': get_hash_digest(node), 'text': str(node.symbol), 'parent': get_hash_digest(node.parent)} | style
+    text = str(node.symbol)
+    # if node.value:
+    #     text = str(node.symbol) + ' ' + str(node.value)
+        
+    return {'key': get_hash_digest(node), 'text': text, 'parent': get_hash_digest(node.parent)} | style
 
 def tree2hash(root: Node, grammar: Grammar):
     dump_table = []

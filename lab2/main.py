@@ -194,8 +194,8 @@ if __name__ == "__main__":
             observer.join()
             sys.exit(0)
 
-    if parse_source:
-        parse_source_code(parse_source, visualize, output_path)
+    if parse:
+        parse_source_code(parse, visualize, output_path)
     
     logger.info('Done. Exiting...')
     console.save_svg(output_path+'results.svg', title='文法分析表生成结果')
