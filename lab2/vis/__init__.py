@@ -74,7 +74,7 @@ def render_state_machine(grammar: Grammar):
     states = []
     state_name_map = grammar.dump_state_names()
     for state in grammar.states:
-        states.append({"id": state_name_map[state], "label": f"Item {state_name_map[state]}" + "\n" + "\n".join(str(x) for x in state.states)})
+        states.append({"id": state_name_map[state], "label": f"State {state_name_map[state]}" + "\n" + "\n".join(str(x) for x in state.states)})
     
     transitions = []
     for f, s, t in grammar.state_transition:

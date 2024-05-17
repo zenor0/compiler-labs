@@ -64,11 +64,11 @@
         physics: {
           enabled: true,
           barnesHut: {
-            springLength: 150,
-          },
-          wind: {
-            x: 0.2,
-            y: 0.0,
+            centralGravity: 0,
+            springLength: 95,
+            springConstant: 0.01,
+            damping: 1,
+            avoidOverlap: 1
           }
         },
         interaction: {
