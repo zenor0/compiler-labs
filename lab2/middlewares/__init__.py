@@ -23,7 +23,7 @@ def translation(t: list[Token]) -> list[Node]:
     return nodes
 
 
-def parse(code: str) -> list[Node]:
+def parse_source(code: str) -> list[Node]:
     parser = LexicalParser(code)
     tokens = parser.parse()
     return translation(tokens)

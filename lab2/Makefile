@@ -6,6 +6,9 @@ run: setup
 demo: clean setup
 	python3 main.py ./data/grammar1.txt -p "b a a b" -m "LR1" -v
 
+lexical: clean
+	python3 main.py ./data/grammar.txt -s ./data/sample.watch -v -w
+
 test: clean
 	python3 -m pytest && python3 -m pytest --html=report.html
 

@@ -1,5 +1,5 @@
 import sys
-
+import os
 import argparse
 import logging
 
@@ -15,14 +15,74 @@ from models.lr1 import LR1
 from utils import display
 from utils import reader
 from vis import *
+from middlewares import parse_source
 
 logger = logging.getLogger('rich')
 logger.setLevel(logging.INFO)
 rich_handler = RichHandler()
 logger.addHandler(rich_handler)
 
-console_width = 300
+tmp_path = './tmp/'
+
+console_width = None
 console = Console(record=True, width=console_width)
+
+def visualize_parse_tree(stack, grammar, output_path):
+    logger.info("Visualizing parse tree...")
+    html, _ = render_parse_tree(stack, grammar)
+    with open(output_path + 'parse_tree.html', 'w') as f:
+        f.write(html)
+    logger.info("Parse tree saved to 'parse_tree.html'")
+    
+
+def parse_source_code(code, visualize=False, output_path='./outputs/'):
+    console_parse = Console(record=True)
+    # console_parse = Console(record=True, width=80)
+    logger.info(f"Parsing string: {code}")
+    logger.debug("Parsing...")
+    result, stack = grammar.parse_node(code)
+    
+    result_table = display.get_parse_table(grammar.dump_state_names(), result)
+    console_parse.print(f'Parsing sentence: {code}')
+    console_parse.print(result_table)
+    logger.info("Parsing done.")
+    console_parse.save_svg(output_path+'parse_result.svg', title='语法分析结果')
+    
+    if visualize:
+        visualize_parse_tree(stack, grammar, output_path)
+
+import time
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+
+class WatchHandler(FileSystemEventHandler):
+    def __init__(self, output_path):
+        super().__init__()
+        self.output_path = output_path
+        self._modified_times = {}
+
+    def on_modified(self, event):
+        if event.is_directory:
+            return
+        current_modified_time = os.path.getmtime(event.src_path)
+        if self._modified_times.get(event.src_path) == current_modified_time:
+            return
+        self._modified_times[event.src_path] = current_modified_time
+
+        logger.info(f'File {event.src_path} has been modified')
+        with open(event.src_path, 'r') as f:
+            code = f.read()
+        
+        token_stream = parse_source(code)
+        
+        with open(tmp_path+'tokens.out', 'w') as f:
+            for token in token_stream:
+                f.write(str(token)+"\n")
+    
+        parse_source_code(token_stream, True, output_path)
+        
+        logger.info('Update done.')
+
 
 
 if __name__ == "__main__":
@@ -30,25 +90,33 @@ if __name__ == "__main__":
     
     ap.add_argument('filename', type=str, help='input grammar file')
     ap.add_argument('-m', '--mode', type=str, help='mode', default='lr1')
-    ap.add_argument('-s', '--save-binary', type=str, help='save binary file', default=False)
-    ap.add_argument('-l', '--load-binary', type=str, help='load binary file', default=False)
-    ap.add_argument('-p', '--parse', type=str, help='parse string', default=False)
+    ap.add_argument('-b', '--binary', type=str, help='Save / Load binary grammar file. If file exist then load, otherwise will save it to the location.', default=False)
+    ap.add_argument('-w', '--watch', action='store_true', help="watch target file then parse in realtime")
     ap.add_argument('-d', '--debug', action='store_true', help='debug mode')
     ap.add_argument('-o', '--output-path', type=str, help='output file path', default='./outputs/')
-    ap.add_argument('-t', '--stdout', action='store_true', help='print to stdout')
     ap.add_argument('-v', '--visualize', action="store_true", help='visualize parse result')
     
+    group = ap.add_mutually_exclusive_group()
+    group.add_argument('-p', '--parse', type=str, help='Input parse string manually.', default=False)
+    group.add_argument('-s', '--source', type=str, help='Load source code file, pipe file into lexical parser, generate token stream then parse them with grammar parser.', default=False)
+
     args = ap.parse_args()
 
     filename = args.filename
     mode = args.mode.lower()
-    save_binary = args.save_binary
-    load_binary = args.load_binary
+    source_file = args.source
     output_path = args.output_path
     debug = args.debug
-    stdout = args.stdout
     parse = args.parse
     visualize = args.visualize
+    
+    save_binary = False
+    load_binary = False
+    if args.binary:
+        if os.path.exists(args.binary):
+            load_binary = args.binary
+        else:
+            save_binary = args.binary
     
     
     if debug:
@@ -63,8 +131,7 @@ if __name__ == "__main__":
     except FileNotFoundError:
         logger.error(f"File '{filename}' not found.")
         sys.exit(1)
-        
-    # start to parse grammar
+    
     if load_binary:
         with open(output_path + load_binary, 'rb') as f:
             binary = f.read()
@@ -107,27 +174,28 @@ if __name__ == "__main__":
         
         logger.info(f"Grammar saved to {save_binary}")
         
-    if stdout:
-        console.print(display.get_all_info(grammar))
+    console.print(display.get_all_info(grammar))
+    
+    if args.watch:
+        path = "./tmp/input"
 
-    if parse:
-        console_parse = Console(record=True, width=80)
-        logger.info(f"Parsing string: {parse}")
-        logger.debug("Parsing...")
-        result, stack = grammar.parse_node(parse)
-        
-        result_table = display.get_parse_table(grammar.dump_state_names(), result)
-        console_parse.print(f'Parsing sentence: {parse}')
-        console_parse.print(result_table)
-        logger.info("Parsing done.")
-        
-        if visualize:
-            logger.info("Visualizing parse tree...")
-            html, _ = render_parse_tree(stack, grammar)
-            with open(output_path + 'parse_tree.html', 'w') as f:
-                f.write(html)
-            logger.info("Parse tree saved to 'parse_tree.html'")
-        console_parse.save_svg(output_path+'parse_result.svg', title='语法分析结果')
+        event_handler = WatchHandler(output_path)
+        observer = Observer()
+        observer.schedule(event_handler, source_file)
+
+        logger.info(f"Start monitoring {source_file} for changes...")
+        observer.start()
+
+        try:
+            while True:
+                time.sleep(1)
+        except KeyboardInterrupt:
+            observer.stop()
+            observer.join()
+            sys.exit(0)
+
+    if parse_source:
+        parse_source_code(parse_source, visualize, output_path)
     
     logger.info('Done. Exiting...')
     console.save_svg(output_path+'results.svg', title='文法分析表生成结果')
