@@ -287,7 +287,12 @@ class Grammar:
             except:
                 result.append({'state': state_stack.copy(), 'symbol': symbol_stack.copy(), 'input': input[input_index:], 'action': 'Unknown symbol'})
                 available_symbols = list(table[state_stack[-1]].keys())
-                logger.error(f'Unknown symbol "{input[input_index].symbol}" at index {input_index}, did you mean "{[x for x in available_symbols if x in self._terminals and x != Symbol(END_OF_INPUT)]}" | available symbols: {available_symbols}')
+                def show_node(node: Node):
+                    if node.value is not None:
+                        return node.value
+                    return node.symbol
+                error_context = f'{" ".join([str(show_node(x)) for x in input[input_index-5:input_index+5]])}'
+                logger.error(f'Unknown symbol "{input[input_index].symbol}" at index {input_index}, context: "{error_context}"\ndid you mean "{[x for x in available_symbols if x in self._terminals and x != Symbol(END_OF_INPUT)]}" \n| available symbols: {available_symbols}')
                 break
             
             if action.action == Action.SHIFT:
