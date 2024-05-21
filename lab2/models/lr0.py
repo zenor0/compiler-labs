@@ -13,8 +13,8 @@ class LR0(Grammar):
         super().__init__(productions)
 
         self.init_states()
-        
-        
+        self.table = None
+        self.conflicts = None
         
         logger.debug('Checking for conflicts')
         _, conflicts = self.dump_table()
@@ -89,6 +89,9 @@ class LR0(Grammar):
         return conflicts
     
     def dump_table(self) -> tuple[dict, dict]:
+        if self.table:
+            return self.table, self.conflicts
+        
         state_table = {}
         
         conflicts = {}
@@ -120,6 +123,9 @@ class LR0(Grammar):
                     elif next_sym in self._non_terminals:
                         new_state = self.goto(state, next_sym)
                         _write_to_table(state, next_sym, Behavior(Action.GOTO, new_state))
+        
+        self.table = state_table
+        self.conflicts = conflicts
         return state_table, conflicts
     
     def dump_state_names(self):

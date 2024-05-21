@@ -8,6 +8,8 @@ class SLR1(LR0):
     def __init__(self, productions: List[Production]):
         super().__init__(productions)
         
+        self.table = None
+        self.conflicts = None
         
         logger.debug('Checking for conflicts')
         _, conflicts = self.dump_table()
@@ -18,6 +20,9 @@ class SLR1(LR0):
     
         logger.info('Done initializing SLR1')
     def dump_table(self):
+        if self.table:
+            return self.table, self.conflicts
+        
         state_table = {}
         
         conflicts = {}
@@ -50,4 +55,7 @@ class SLR1(LR0):
                     elif next_sym in self._non_terminals:
                         new_state = self.goto(state, next_sym)
                         _write_to_table(state, next_sym, Behavior(Action.GOTO, new_state))
+        
+        self.table = state_table
+        self.conflicts = conflicts
         return state_table, conflicts
