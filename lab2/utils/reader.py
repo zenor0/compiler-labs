@@ -35,10 +35,14 @@ B -> b
 import re
 from models import Production, Symbol
 
+COMMENT_RE = r"//.*"
 OR_PRODUCTION_RE = r"\s*(\S+)\s*->\s*(.+)([.|\s|\n]* \| \s*)(.+)"
 REPLACE_RE = r"\n\1 -> \2 \n\1 -> \4\n"
 
 def read_grammar(raw : str) -> list[Production]:
+    # remove comments
+    raw = re.sub(COMMENT_RE, "", raw)
+    
     while re.search(OR_PRODUCTION_RE, raw, re.MULTILINE):
         raw = re.sub(OR_PRODUCTION_RE, REPLACE_RE, raw, re.MULTILINE)
     
