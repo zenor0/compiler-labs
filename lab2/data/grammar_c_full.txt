@@ -19,8 +19,7 @@ declarator -> id
 
 /* Statement */
 stmts    -> stmts stmt | stmt
-stmt     -> declarator = expr ;
-          | if ( exp ) stmt
+stmt     -> if ( exp ) stmt
           | if ( exp ) stmt else stmt
           | while ( exp ) stmt
           | do stmt while ( exp ) ;
