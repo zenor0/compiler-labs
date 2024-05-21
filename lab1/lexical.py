@@ -43,8 +43,8 @@ class Token:
             case _TOKEN_TYPE.CHAR:
                 return f"<{self.value}>"
 
-    # def __repr__(self) -> str:
-    #     return self.__str__()
+    def __repr__(self) -> str:
+        return self.__str__()
 
     def __eq__(self, o: object) -> bool:
         return self.type == o.type and self.value == o.value
@@ -104,14 +104,8 @@ class LexicalParser:
         """
         self.code = code
         self.tokens = []
-    
-    def parse(self) -> list[Token]:
-        """ Parse the code and return the list of tokens
         
-        Returns:
-        list: list of tokens
-        """
-        
+    def parse(self):
         code = self.code
         
         # Preprocess the code
@@ -120,71 +114,84 @@ class LexicalParser:
         code = re.sub(self._comment_pattern, "", code)
         code = re.sub(self._multi_line_comment_pattern, "", code)
         
+        lines = code.split("\n")
+        for index, line in enumerate(lines):
+            # print(f"Line {index}: {line}")
+            parser = self.generator(line)
+            try:
+                tokens = list(parser)
+            except SyntaxWarning as e:
+                logger.error(f'Error in "{line}" \nError at line {index} index {e.args[2]}: {e.args[0]} {e.args[1]}')
+                continue
+            self.tokens += tokens
+            
+        return self.tokens
+        
+    def generator(self, buffer: str):
         # Scan the code and generate tokens
         i = 0
-        n = len(code)
+        n = len(buffer)
         while i < n:
-            ch = code[i]
+            ch = buffer[i]
             i += 1
             # print(code[i-1:])
             if ch.isspace():
                 continue
             if ch in self._delimiters:
-                self.tokens.append(Token(_TOKEN_TYPE.DELIMITER, ch))
+                yield Token(_TOKEN_TYPE.DELIMITER, ch)
             elif ch in self._single_char_operators:
                 # check if double char operator
-                if i < n and ch + code[i] in self._double_char_operators:
-                    self.tokens.append(Token(_TOKEN_TYPE.OPERATOR, ch + code[i]))
+                if i < n and ch + buffer[i] in self._double_char_operators:
+                    yield Token(_TOKEN_TYPE.OPERATOR, ch + buffer[i])
                     i += 1
                 else:
-                    self.tokens.append(Token(_TOKEN_TYPE.OPERATOR, ch))
+                    yield Token(_TOKEN_TYPE.OPERATOR, ch)
                     
             # Check for string
             elif ch == '"':
-                match = re.match(self._string_pattern, code[i-1:])
+                match = re.match(self._string_pattern, buffer[i-1:])
                 if match:
-                    self.tokens.append(Token(_TOKEN_TYPE.STRING, match.group()))
+                    yield Token(_TOKEN_TYPE.STRING, match.group())
                     i += len(match.group()) - 1
                 else:
-                    match = re.search('\n', code[i-1:])
+                    match = re.search('\n', buffer[i-1:])
                     if match:
-                        logger.warning("Unfinished string: %s" % code[i-1:match.end()])
+                        raise SyntaxWarning("Unfinished string", buffer[i-1:match.end()], i)
                         i += match.end() - 1
                     
             # Check for character
             elif ch == "'":
-                match = re.match(self._char_pattern, code[i-1:])
+                match = re.match(self._char_pattern, buffer[i-1:])
                 if match:
-                    self.tokens.append(Token(_TOKEN_TYPE.CHAR, match.group()))
+                    yield Token(_TOKEN_TYPE.CHAR, match.group())
                     i += len(match.group()) - 1
                 else:
-                    match = re.search('\n', code[i-1:])
+                    match = re.search('\n', buffer[i-1:])
                     if match:
-                        logger.warning("Unfinished char: %s" % code[i-1:match.end()])
+                        raise SyntaxWarning("Unfinished char", buffer[i-1:match.end()], i)
                         i += match.end() - 1
                         
             # Check for number
             elif ch.isdigit():
-                match = re.match(self._number_pattern, code[i-1:])
+                match = re.match(self._number_pattern, buffer[i-1:])
                 if match:
-                    self.tokens.append(Token(_TOKEN_TYPE.NUMBER, match.group()))
+                    yield Token(_TOKEN_TYPE.NUMBER, match.group())
                     i += len(match.group()) - 1
                     
             # Check for identifier
             elif ch.isalpha() or ch == "_":
-                match = re.match(self._identifier_pattern, code[i-1:])
+                match = re.match(self._identifier_pattern, buffer[i-1:])
                 if match:
                     word = match.group()
                     word = word.lower()
                     if word in self._keywords:
-                        self.tokens.append(Token(_TOKEN_TYPE.KEYWORD, word))
+                        yield Token(_TOKEN_TYPE.KEYWORD, word)
                     else:
-                        self.tokens.append(Token(_TOKEN_TYPE.IDENTIFIER, word))
+                        yield Token(_TOKEN_TYPE.IDENTIFIER, word)
                     i += len(match.group()) - 1
             else:
-                logger.warning("Unknown character: %s" % ch)
+                raise SyntaxWarning("Unknown character", ch, i)
 
-        return self.tokens
 
 if __name__ == "__main__":
     """ Simple test driver 
@@ -192,7 +199,9 @@ if __name__ == "__main__":
     python lexical.py < test.c
     
     """
-    code = sys.stdin.read()
+    
+    with open("./tmp/input") as f:
+        code = f.read()
     parser = LexicalParser(code)
     tokens = parser.parse()
     for token in tokens:
