@@ -1,0 +1,46 @@
+/* Program */
+program  -> decl-spec declarator block
+block    -> { decls stmts } | { decls } | { stmts } | { }
+
+/* Declaration */
+decls     -> decls decl | decl
+decl      -> decl-spec declarator-list ; | declarator-list ;
+
+decl-spec -> type-spec decl-spec | type-spec
+type-spec -> float | int | double | char | long | short | void
+
+declarator-list -> init_declarator | declarator-list , init_declarator
+init_declarator -> declarator = conditional_exp | declarator
+
+declarator -> id
+            | declarator [ exp ] | declarator [ ]
+            | declarator ( exp ) | declarator ( )
+
+
+/* Statement */
+stmts    -> stmts stmt | stmt
+stmt     -> declarator = expr ;
+          | if ( exp ) stmt
+          | if ( exp ) stmt else stmt
+          | while ( exp ) stmt
+          | do stmt while ( exp ) ;
+          | break ;
+          | continue ;
+          | return exp ;
+          | block
+          | ;
+
+
+/* Condition Expressions */
+exp     -> exp , conditional_exp | conditional_exp
+conditional_exp -> or_exp | or_exp ? exp : conditional_exp
+or_exp   -> or_exp || join | join
+join     -> join && equality | equality
+equality -> equality == rel  | equality != rel | rel
+rel      -> expr < expr | expr <= expr | expr >= expr | expr > expr | expr
+
+/* Arithmetic Expressions */
+expr     -> expr + term | expr - term | term
+term     -> term * unary | term / unary | term % unary | unary
+unary    -> ! unary | - unary | ++ unary | -- unary | factor
+factor   -> ( exp ) | loc | id | num | real | true | false | string 

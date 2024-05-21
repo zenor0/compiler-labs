@@ -1,0 +1,100 @@
+TranslationUnit    -> ExternalDecl
+                    | TranslationUnit ExternalDecl
+ExternalDecl       -> FunctionDefinition
+                    | Decl
+FunctionDefinition -> DeclSpecs Declarator DeclList CompoundStat
+                    | Declarator DeclList CompoundStat
+                    | DeclSpecs Declarator CompoundStat
+                    | Declarator CompoundStat
+Decl               -> DeclSpecs InitDeclaratorList ; | InitDeclaratorList ;
+DeclList           -> Decl | DeclList Decl
+DeclSpecs          -> TypeSpec DeclSpecs
+                    | TypeSpec
+TypeSpec    -> void | char | short | int | long | float | double
+
+InitDeclaratorList -> InitDeclarator
+                    | InitDeclaratorList , InitDeclarator
+InitDeclarator    -> Declarator
+                | Declarator = Initializer
+
+SpecQualifierList    -> TypeSpec SpecQualifierList
+                | TypeSpec
+
+Declarator    ->  id
+                | ( Declarator )
+                | Declarator [ ConstExp ]
+                | Declarator [ ]
+                | Declarator ( ParamTypeList )
+                | Declarator ( IdList )
+                | Declarator ( )
+ParamTypeList    -> ParamList
+                | ParamList , ...
+ParamList    -> ParamDecl
+                | ParamList , ParamDecl
+ParamDecl    -> DeclSpecs Declarator
+                | DeclSpecs AbstractDeclarator
+                | DeclSpecs
+IdList    -> id | IdList , id
+Initializer    -> AssignmentExp
+                | { InitializerList }
+                | { InitializerList , }
+InitializerList    -> Initializer
+                | InitializerList , Initializer
+TypeName    -> SpecQualifierList AbstractDeclarator
+                | SpecQualifierList
+AbstractDeclarator -> ( AbstractDeclarator )
+                | AbstractDeclarator [ ConstExp ]
+                | [ ConstExp ]
+                | AbstractDeclarator [ ]
+                | [ ]
+                | AbstractDeclarator ( ParamTypeList )
+                | ( ParamTypeList )
+                | AbstractDeclarator ( )
+                | ( )
+Stat    ->   ExpStat | CompoundStat | SelectionStat | IterationStat | JumpStat
+ExpStat    -> Exp ; | ;
+CompoundStat    -> { DeclList StatList } | { CompoundStat-list }
+CompoundStat-list   -> StatList  |  DeclList  | <epsilon>
+StatList    -> Stat
+                | StatList Stat
+SelectionStat    -> if ( Exp ) Stat
+                | if ( Exp ) Stat else Stat
+                | switch ( Exp ) Stat
+IterationStat  -> while ( Exp ) Stat
+                | do Stat while ( Exp ) ;
+                | for ( OptExp ; OptExp ; OptExp ) Stat
+OptExp -> Exp | <epsilon>
+JumpStat    -> JumpSpec ;
+JumpSpec    -> goto id | continue | break | return Exp | return
+
+Exp    ->  Exp , AssignmentExp | AssignmentExp
+AssignmentExp    -> ConditionalExp
+ConditionalExp    -> LogicalOrExp ? Exp : ConditionalExp | LogicalOrExp
+ConstExp    -> ConditionalExp
+LogicalOrExp    ->  LogicalOrExp || LogicalAndExp |  LogicalAndExp
+LogicalAndExp    ->  LogicalAndExp && EqualityExp |  EqualityExp
+EqualityExp    ->  EqualityExp == RelationalExp
+                | EqualityExp != RelationalExp |  RelationalExp
+RelationalExp    ->  RelationalExp < AdditiveExp
+                | RelationalExp > AdditiveExp
+                | RelationalExp <= AdditiveExp
+                | RelationalExp >= AdditiveExp |  AdditiveExp
+AdditiveExp    -> AdditiveExp + MultExp
+                | AdditiveExp - MultExp | MultExp
+MultExp    ->   MultExp * UnaryExp
+                | MultExp / UnaryExp
+                | MultExp % UnaryExp |  UnaryExp
+UnaryExp    ->   ++ UnaryExp
+                | -- 
+                | UnaryOperator UnaryExp
+                |  PostfixExp
+UnaryOperator    -> & | * | + | - | ~ | !
+PostfixExp    ->   PostfixExp [ Exp ]
+                | PostfixExp ( ArgumentExpList )
+                | PostfixExp ( )
+                | PostfixExp . id
+                | PostfixExp ++
+                | PostfixExp -- |  PrimaryExp
+PrimaryExp    -> id | num | string | ( Exp ) | true | false
+ArgumentExpList    -> AssignmentExp
+                | ArgumentExpList , AssignmentExp
