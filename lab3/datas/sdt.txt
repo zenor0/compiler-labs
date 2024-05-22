@@ -1,0 +1,65 @@
+/* Program */
+program  -> basic id() block
+block    -> { decls stmts } {backpatch(stmts.nextlist, nextinstr); }
+
+/* Declaration */
+decls    -> decls decl | <epsilon>
+decl     -> type id;{top.put(id.lexeme, type);} 
+
+type     -> type[num] | basic
+basic    -> float 
+basic    -> int{type=int;}
+
+/* Statement */
+stmts    -> stmts1 M stmt {backpatch(stmts1.nextlist, M.instr); stmts.nextlist=stmt.nextlist;}
+stmts    -> <epsilon>
+stmt     -> id = expr; {stmt.nextlist=null; gen(top.get(id.lexeme) '=' expr.addr;}
+
+stmt     -> loc = expr;
+
+stmt     -> if ( bool ) M stmt1	{backpatch(bool.truelist, M.instr); 
+				stmt.nextlist=merge(bool.falselist, stmt1.nextlist);}
+
+stmt     -> if ( bool ) M1 stmt1 N else M2 stmt2 
+				{backpatch(bool.truelist, M1.instr); 
+				backpatch(bool.falselist, M2.instr);
+				temp=merge(stmt1.nextlist, N.nextlist);
+				stmt.nextlist=merge(temp, stmt2.nextlist);}
+
+stmt     -> while M1 ( bool ) M2 stmt1
+				{backpatch(stmt1.truelist, M1.instr); 
+				backpatch(bool.truelist, M2.instr);
+				stmt.nextlist=bool.falselist;
+				gen('goto', M1.instr);}
+
+stmt     -> do stmt while ( bool ) ;
+stmt     -> break ;
+stmt     -> block
+loc      -> loc [ num ]  | id
+
+M        -> <epsilon> {M.instr=nextinstr;}
+
+N        -> <epsilon> {N.nextlist=makelist(nextinstr); gen('goto_____');}
+
+/* Condition Expressions */
+bool     -> expr1 rel expr2 {bool.truelist=makelist(nextinstr); bool.falselist=makelist(nextinstr+1); 
+                              gen('if' expr1.addr rel.op expr2.addr 'goto  ___');
+			      gen('goto _____');}  
+bool     -> true {bool.truelist=makelist(nextinstr); gen('goto_____');}
+bool     -> false
+bool     -> bool||bool | bool&& bool | ! bool | (bool) 
+rel      -> < | > | == | != | <= | >=
+
+
+/* Arithmetic Expressions */
+expr     -> expr1 + expr2 {expr.addr= new Temp(); gen(expr.addr '=' expr1.addr '+' expr2.addr);}
+
+expr     -> expr1 - expr2 | expr1 * expr2 | expr1 / expr2 | -expr1
+
+expr     -> ( expr1 ) {expr.addr=expr1.addr}
+expr     -> id {expr.addr = top.get(id.lexeme)}
+expr     -> num {expr.addr = top.get(num.lexval)}
+
+
+
+

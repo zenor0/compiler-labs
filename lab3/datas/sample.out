@@ -1,0 +1,38 @@
+int main()
+{
+    int i;
+    int j;
+
+100: t1 = 9 * 11
+101: t2 = (float) t1
+102: t3 = 3.85 + t2
+103: t4 = (int) t3
+104: i  = t4
+105: j  = 50 
+106: cnt= 0 
+107: t5 = cnt + 1
+108: cnt= t5
+109: if (i==j) goto 118
+110: if (i>j) goto 112 
+111: goto 115
+112: t6 = j + 1 
+113: j  = t6
+114: goto 117
+115: t7 = j - 1
+116: j  = t7
+117: goto 107
+118: 
+
+/*
+    i=3.85+9*11;
+    j=50;
+    n=0;
+    While (true)        
+        if (i == j)
+	    break;
+	else if (i>j)
+	    j=j+1;
+	else
+	    j=j-1;
+*/
+}
