@@ -34,19 +34,20 @@ def visualize_parse_tree(stack, grammar, output_path):
         f.write(html)
     logger.info("Parse tree saved to 'parse_tree.html'")
     
-
-def parse_source_code(code, visualize=False, output_path='./outputs/'):
+    
+def parse_source_code(code, visualize=False, output_path='./outputs/', debug=False):
     console_parse = Console(record=True)
     # console_parse = Console(record=True, width=80)
-    logger.info(f"Parsing string: {code}")
-    logger.debug("Parsing...")
+    # logger.info(f"Parsing string: {code}")
+    # logger.debug("Parsing...")
     result, stack = grammar.parse_node(code)
     
-    result_table = display.get_parse_table(grammar.dump_state_names(), result)
-    console_parse.print(f'Parsing sentence: {code}')
-    console_parse.print(result_table)
+    if debug:
+        result_table = display.get_parse_table(grammar.dump_state_names(), result)
+        console_parse.print(f'Parsing sentence: {code}')
+        console_parse.print(result_table)
+        # console_parse.save_svg(output_path+'parse_result.svg', title='语法分析结果')
     logger.info("Parsing done.")
-    console_parse.save_svg(output_path+'parse_result.svg', title='语法分析结果')
     
     if visualize:
         visualize_parse_tree(stack, grammar, output_path)
@@ -79,7 +80,7 @@ class WatchHandler(FileSystemEventHandler):
             for token in token_stream:
                 f.write(str(token)+"\n")
     
-        parse_source_code(token_stream, True, output_path)
+        parse_source_code(token_stream, True, output_path, True)
         
         logger.info('Update done.')
 
@@ -152,12 +153,12 @@ if __name__ == "__main__":
     
     logger.info("Parsing done.")
     logger.info("Grammar info:")
-    info = display.get_all_info(grammar)
-    console.print(info)
+    if debug:
+        info = display.get_all_info(grammar)
+        console.print(info)
     
-    
-    with open(output_path + 'result.txt', 'w') as f:
-        print(info, file=f)
+        with open(output_path + 'result.txt', 'w') as f:
+            print(info, file=f)
     
     if visualize:
         logger.info("Visualizing state machine...")
@@ -174,7 +175,6 @@ if __name__ == "__main__":
         
         logger.info(f"Grammar saved to {save_binary}")
         
-    console.print(display.get_all_info(grammar))
     
     if args.watch:
         path = "./tmp/input"
@@ -195,7 +195,7 @@ if __name__ == "__main__":
             sys.exit(0)
 
     if parse:
-        parse_source_code(parse, visualize, output_path)
+        parse_source_code(parse, visualize, output_path, debug)
     
     logger.info('Done. Exiting...')
     console.save_svg(output_path+'results.svg', title='文法分析表生成结果')

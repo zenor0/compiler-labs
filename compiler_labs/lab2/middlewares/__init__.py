@@ -1,4 +1,4 @@
-from .lexical import LexicalParser, Token, _TOKEN_TYPE
+from compiler_labs.lab1 import LexicalParser, Token, _TOKEN_TYPE
 from models import Node
 
 def translation(t: list[Token]) -> list[Node]:

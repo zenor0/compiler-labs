@@ -3,10 +3,10 @@ VENV := venv
 install: requirements.txt
 ifeq ($(OS),Windows_NT)
 	python -m venv $(VENV)
-	$(VENV)\Scripts\pip install -r requirements.txt
+	$(VENV)\Scripts\pip install -e .
 else
 	python3 -m venv $(VENV)
-	$(VENV)/bin/pip install -r requirements.txt
+	$(VENV)/bin/pip install -e .
 endif
 	@echo "\033[0;31m"
 	@echo "WARNING: Please make sure to activate the virtual environment before running the application."

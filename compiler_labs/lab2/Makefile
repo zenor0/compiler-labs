@@ -4,10 +4,13 @@ run: setup
 	python3 main.py $(input)
 
 demo: clean setup
-	python3 main.py ./data/grammar1.txt -p "b a a b" -m "LR1" -v
+	python3 main.py ./data/grammar1.txt -p "b a a b" -m "LR1" -v -d
 
-lexical: clean
+lexical:  clean open
 	python3 main.py ./data/grammar.txt -s ./data/sample.watch -v -w
+
+lexical-test:  clean
+	python3 main.py ./data/grammar_c_full.txt -s ./data/sample.watch -v -w
 
 test: clean
 	python3 -m pytest && python3 -m pytest --html=report.html
@@ -21,6 +24,11 @@ clean:
 dump-ast:
 	python3 -m pyan main.py models/*.py utils/*.py vis/*.py --uses --no-defines --colored --grouped --annotated --dot > ./tmp/main.dot && dot -Tpng ./tmp/main.dot -o ./tmp/main.png
 	python3 -m pyan main.py models/*.py utils/*.py vis/*.py --uses --no-defines --colored --grouped --annotated --html > ./tmp/myuses.html
+
+open:
+	code ./data/grammar.txt
+	code ./data/sample.watch
+	code ./outputs/parse_tree.html
 
 setup:
 	mkdir -p ./outputs

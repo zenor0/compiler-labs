@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "compiler_labs"
+version = "0.1.0"
+description = "FZU 2024 Compilers Lab"
+authors = ["zenor0"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.10"
+rich = "^13.7.1"
+watchdog = "^4.0.0"
+Jinja2 = "^3.1.4"
+pytest-cov = "^5.0.0"
+pytest-html = "^4.1.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

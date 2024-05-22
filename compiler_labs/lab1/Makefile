@@ -16,7 +16,12 @@ vis:
 	python3 -m pyan *.py --uses --no-defines --colored --grouped --annotated --dot > ./imgs/main.dot && dot -Tpng ./imgs/main.dot -o ./imgs/main.png
 
 
-watch:
+open:
+	code ./tmp/input
+	code ./outputs/input.out
+	code ./outputs/input.sym
+
+watch: open
 	python3 main.py ./tmp/input -w
 
 

@@ -1,0 +1,84 @@
+<html>
+<head>
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+    <style type="text/css">
+        #mynetwork {
+            width: 600px;
+            height: 600px;
+            border: 1px solid lightgray;
+        }
+    </style>
+</head>
+<body>
+<div id="mynetwork"></div>
+
+<script type="text/javascript">
+    // create an array with nodes
+    var nodes = new vis.DataSet([{"id": "0", "label": "State 0\nS' -> \u00b7 S, $\nS -> \u00b7 A B, $\nA -> \u00b7 a B a, $\nA -> \u00b7 a B a, b\nA -> \u00b7, $\nA -> \u00b7, b"}, {"id": "1", "label": "State 1\nS' -> S \u00b7, $"}, {"id": "2", "label": "State 2\nS -> A \u00b7 B, $\nB -> \u00b7 b A b, $\nB -> \u00b7, $"}, {"id": "3", "label": "State 3\nA -> a \u00b7 B a, $\nA -> a \u00b7 B a, b\nB -> \u00b7 b A b, a\nB -> \u00b7, a"}, {"id": "4", "label": "State 4\nS -> A B \u00b7, $"}, {"id": "5", "label": "State 5\nB -> b \u00b7 A b, $\nA -> \u00b7 a B a, b\nA -> \u00b7, b"}, {"id": "6", "label": "State 6\nA -> a B \u00b7 a, $\nA -> a B \u00b7 a, b"}, {"id": "7", "label": "State 7\nB -> b \u00b7 A b, a\nA -> \u00b7 a B a, b\nA -> \u00b7, b"}, {"id": "8", "label": "State 8\nB -> b A \u00b7 b, $"}, {"id": "9", "label": "State 9\nA -> a \u00b7 B a, b\nB -> \u00b7 b A b, a\nB -> \u00b7, a"}, {"id": "10", "label": "State 10\nA -> a B a \u00b7, $\nA -> a B a \u00b7, b"}, {"id": "11", "label": "State 11\nB -> b A \u00b7 b, a"}, {"id": "12", "label": "State 12\nB -> b A b \u00b7, $"}, {"id": "13", "label": "State 13\nA -> a B \u00b7 a, b"}, {"id": "14", "label": "State 14\nB -> b A b \u00b7, a"}, {"id": "15", "label": "State 15\nA -> a B a \u00b7, b"}]);
+
+    // create an array with edges
+    var edges = new vis.DataSet([{"from": "0", "to": "1", "label": "S"}, {"from": "0", "to": "2", "label": "A"}, {"from": "0", "to": "3", "label": "a"}, {"from": "2", "to": "4", "label": "B"}, {"from": "2", "to": "5", "label": "b"}, {"from": "3", "to": "6", "label": "B"}, {"from": "3", "to": "7", "label": "b"}, {"from": "5", "to": "8", "label": "A"}, {"from": "5", "to": "9", "label": "a"}, {"from": "6", "to": "10", "label": "a"}, {"from": "7", "to": "11", "label": "A"}, {"from": "7", "to": "9", "label": "a"}, {"from": "8", "to": "12", "label": "b"}, {"from": "9", "to": "13", "label": "B"}, {"from": "9", "to": "7", "label": "b"}, {"from": "11", "to": "14", "label": "b"}, {"from": "13", "to": "15", "label": "a"}]);
+
+    // Let first node fix on the top
+    nodes.update({id: "0", fixed: true, x: 0, y: 0});
+
+    // create a network
+    var container = document.getElementById('mynetwork');
+
+    // provide the data in the vis format
+    var data = {
+        nodes: nodes,
+        edges: edges
+    };
+    var options = {
+        nodes: {
+            shape: 'box',
+            shapeProperties: {
+                borderRadius: 2
+            },
+            font: {
+              align: 'left'
+            },
+            color: {
+                border: 'black',
+                background: 'white',
+                highlight: {
+                    border: 'black',
+                    background: 'white'
+                },
+                hover: {
+                    border: 'blue',
+                    background: 'white'
+                }
+            }
+        },
+        edges: {
+            smooth: {
+                type: 'discret',
+                forceDirection: 'none',
+                roundness: 0.8
+            },
+            arrows: 'to',
+        },
+        physics: {
+          enabled: true,
+          barnesHut: {
+            centralGravity: 0,
+            springLength: 95,
+            springConstant: 0.01,
+            damping: 1,
+            avoidOverlap: 1
+          }
+        },
+        interaction: {
+          hover: true
+        }
+    };
+
+
+    // initialize your network!
+    var network = new vis.Network(container, data, options);
+</script>
+</body>
+</html>

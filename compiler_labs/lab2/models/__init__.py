@@ -1,6 +1,6 @@
 from typing import List
 from enum import Enum
-from utils.hash import get_hash_digest
+from compiler_labs.lab2.utils.hash import get_hash_digest
 import pickle
 
 import logging
@@ -31,25 +31,6 @@ class Symbol:
 
     def __hash__(self):
         return self._hash
-    
-class Node:
-    def __init__(self, symbol: Symbol, value = None):
-        if isinstance(symbol, str):
-            symbol = Symbol(symbol)
-        self.symbol = symbol
-        self.parent = None
-        self.children = []
-        self.value = value
-
-    
-    def add_child(self, child):
-        self.children.append(child)
-        
-    def set_parent(self, parent):
-        self.parent = parent
-    
-    def __repr__(self):
-        return self.symbol.value
 
 class Production:
     def __init__(self, head:Symbol, body: List[Symbol]):
@@ -67,6 +48,34 @@ class Production:
 
     def __hash__(self):
         return hash(str(self.head) + str(self.body))
+
+
+
+class Node:
+    def __init__(self, symbol: Symbol, value = None):
+        if isinstance(symbol, str):
+            symbol = Symbol(symbol)
+        self.symbol = symbol
+        self.parent = None
+        self.children = []
+        self.value = value
+        
+        self.attr = {}
+        self.production = None
+
+    def set_production(self, prod: Production):
+        self.production = prod
+        return prod
+    
+    def add_child(self, child):
+        self.children.append(child)
+        
+    def set_parent(self, parent):
+        self.parent = parent
+    
+    def __repr__(self):
+        return self.symbol.value
+
 
 class Grammar:
     _first = {}
@@ -306,6 +315,7 @@ class Grammar:
                 
                 popped_node = []
                 new_node = Node(production.head)
+                new_node.set_production(production)
                 if production.body == [Symbol(EPSILON)]:
                     epsilon_node = Node(Symbol(EPSILON))
                     epsilon_node.parent = new_node

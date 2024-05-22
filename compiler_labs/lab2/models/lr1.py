@@ -1,5 +1,5 @@
 from typing import List
-from utils.hash import get_hash_digest
+from compiler_labs.lab2.utils.hash import get_hash_digest
 from . import Grammar, Production, Symbol, Item, State, Behavior, Action
 from . import EPSILON, END_OF_INPUT, DOT, logger
 
