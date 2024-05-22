@@ -33,15 +33,15 @@ class Symbol:
         return self._hash
     
 class Node:
-    def __init__(self, symbol: Symbol, value = None, is_value = False):
+    def __init__(self, symbol: Symbol, value = None):
         if isinstance(symbol, str):
             symbol = Symbol(symbol)
         self.symbol = symbol
         self.parent = None
         self.children = []
         self.value = value
-        self.is_value = is_value
 
+    
     def add_child(self, child):
         self.children.append(child)
         
@@ -305,19 +305,19 @@ class Grammar:
                 result.append({'state': state_stack.copy(), 'symbol': symbol_stack.copy(), 'input': input[input_index:], 'action': f'Reduce {production}'})
                 
                 popped_node = []
-                new_symbol = Node(production.head)
+                new_node = Node(production.head)
                 if production.body == [Symbol(EPSILON)]:
                     epsilon_node = Node(Symbol(EPSILON))
-                    epsilon_node.parent = new_symbol
-                    new_symbol.children = [epsilon_node]
+                    epsilon_node.parent = new_node
+                    new_node.children = [epsilon_node]
                 else:
                     for _ in range(len(production.body)):
                         state_stack.pop()
                         popped_node.append(symbol_stack.pop())
-                    new_symbol.children = popped_node
+                    new_node.children = popped_node
                 for node in popped_node:
-                    node.parent = new_symbol
-                symbol_stack.append(new_symbol)
+                    node.parent = new_node
+                symbol_stack.append(new_node)
                 
                 state_stack.append(table[state_stack[-1]][symbol_stack[-1].symbol].value)
             elif action.action == Action.ACCEPT:

@@ -11,9 +11,8 @@ def first_traverse(node: Node, method, *args):
     method(node, *args)
     # if node has value then create a new node to display
     if node.value:
-        new_node = Node(node.value)
+        new_node = Node(node.value, node.value)
         new_node.parent = node
-        new_node.is_value = True
         method(new_node, *args)
     for child in node.children:
         first_traverse(child, method, *args)
@@ -37,7 +36,7 @@ def format_node(node: Node, grammar: Grammar, style = None):
         style = style | style_sheet['terminal']
     elif node.symbol in grammar._non_terminals:
         style = style | style_sheet['non-terminal']
-    elif node.is_value:
+    elif node.value != None:
         style = style | style_sheet['value']
     else:
         style = style | {'fill': 'grey', 'stroke': 'black'}
