@@ -1,5 +1,5 @@
 from compiler_labs.lab1 import LexicalParser, Token, _TOKEN_TYPE
-from models import Node
+from compiler_labs.lab2.models import Node
 
 def translation(t: list[Token]) -> list[Node]:
     nodes = []
@@ -10,7 +10,7 @@ def translation(t: list[Token]) -> list[Node]:
         elif token.type == _TOKEN_TYPE.IDENTIFIER:
             nodes.append(Node('id', token.value))
         elif token.type == _TOKEN_TYPE.NUMBER:
-            nodes.append(Node('num', token.value))
+            nodes.append(Node('num', int(token.value)))
         elif token.type == _TOKEN_TYPE.OPERATOR:
             nodes.append(Node(token.value))
         elif token.type == _TOKEN_TYPE.CHAR:
