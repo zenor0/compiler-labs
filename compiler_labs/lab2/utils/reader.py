@@ -1,4 +1,4 @@
-from models import Production, Symbol
+from compiler_labs.lab2.models import Production, Symbol
 import re
 
 PRODUCTION_RE = r'\s*(\S+)\s*->\s*(.+)\n'
@@ -31,9 +31,6 @@ B -> a B
 B -> b
 """
 
-
-import re
-from models import Production, Symbol
 
 COMMENT_RE = r"//.*"
 OR_PRODUCTION_RE = r"\s*(\S+)\s*->\s*(.+)([.|\s|\n]* \| \s*)(.+)"
