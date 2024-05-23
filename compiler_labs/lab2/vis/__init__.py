@@ -57,7 +57,6 @@ def render_parse_tree(node_stack: Node | list[Node], grammar: Grammar):
     for list in [tree2hash(node, grammar) for node in node_stack]:
         node_list += list
 
-    node_list.reverse()
     env = Environment(loader=FileSystemLoader('./vis/templates'))
     template = env.get_template('tree.html')
     return template.render({ 'nodes': json.dumps(node_list) }), node_list
