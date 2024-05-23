@@ -4,4 +4,3 @@ A -> a B a
 A -> <epsilon>
 B -> b A b
 B -> <epsilon>
-z
