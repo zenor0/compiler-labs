@@ -1,5 +1,6 @@
 from typing import List
 from enum import Enum
+from compiler_labs.lab3.models import Snippet
 from compiler_labs.lab2.utils.hash import get_hash_digest
 import pickle
 
@@ -36,6 +37,13 @@ class Production:
     def __init__(self, head:Symbol, body: List[Symbol]):
         self.head = head
         self.body = body
+        
+    def equal(self, other):
+        def check_if_snippet(x):
+            return not isinstance(x, Snippet)
+        lhs_body = [x for x in filter(check_if_snippet, self.body)]
+        rhs_body = [x for x in filter(check_if_snippet, other.body)]
+        return self.head == other.head and lhs_body == rhs_body
 
     def __str__(self):
         return str(self.head) + ' -> ' + ' '.join([str(x) for x in self.body])
@@ -52,7 +60,10 @@ class Production:
 
 
 class Node:
+    production: Production
     def __init__(self, symbol: Symbol, value = None):
+        self.attr = {}
+        
         if isinstance(symbol, str):
             symbol = Symbol(symbol)
         self.symbol = symbol
@@ -60,9 +71,8 @@ class Node:
         self.children = []
         self.value = value
         
-        self.attr = {}
         self.production = None
-
+        
     def set_production(self, prod: Production):
         self.production = prod
         return prod
@@ -75,7 +85,18 @@ class Node:
     
     def __repr__(self):
         return self.symbol.value
+    
+    def __getattr__(self, name):
+        if name in self.attr:
+            return self.attr[name]
+        else:
+            raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
 
+    def __setattr__(self, name, value):
+        if name in ['attr', 'symbol', 'parent', 'children', 'value', 'production']:
+            super().__setattr__(name, value)
+        else:
+            self.attr[name] = value
 
 class Grammar:
     _first = {}
@@ -324,6 +345,7 @@ class Grammar:
                     for _ in range(len(production.body)):
                         state_stack.pop()
                         popped_node.append(symbol_stack.pop())
+                    popped_node.reverse()
                     new_node.children = popped_node
                 for node in popped_node:
                     node.parent = new_node
