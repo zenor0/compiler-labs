@@ -1,0 +1,7 @@
+E -> E op E <<E[0].code = E[1].code + E[2].code + op.val;>>
+E -> ( E ) <<E[0].code = E[1].code>>
+E -> id <<E.code = id.value; print(E.code);>>
+op -> + <<op.val = '+'>>
+op -> - <<op.val = '-'>>
+op -> \ <<op.val = '\'>>
+op -> * <<op.val = '*'>>

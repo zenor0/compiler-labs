@@ -1,0 +1,13 @@
+'''
+def gen(*args):
+    print(*args)
+
+
+'''
+
+S -> id = E ; <<S.val = E.val; gen(id.value, '=', E.val);>>
+E -> E + E <<E[0].val = E[1].val + E[2].val; gen(E[0].val, '=', E[1].val, '+', E[2].val);>>
+E -> E * E <<E[0].val = E[1].val * E[2].val; gen(E[0].val, '=', E[1].val, '*', E[2].val);>>
+E -> - E <<E[0].val = - E[1].val; gen(E[0].val, '=', 'uminus', E[1].val);>>
+E -> ( E ) <<E[0].val = E[1].val;>>
+E -> num <<E.val = num.value;>>
