@@ -12,7 +12,10 @@ REPLACE_RE = r"\n\1 -> \2 \n\1 -> \4\n"
 
 
 FUNC_DEFINITION_RE = r"'''([\s\S]*)'''"
-FUNC_SNIPPET_RE = r"<<(.*?)>>"  # non-greedy match
+# FUNC_SNIPPET_RE = r"<<(.*?)>>"  # non-greedy match
+FUNC_SNIPPET_RE = r"<<([\s\S]*?)>>"  # non-greedy match and multiline match
+
+CODE_SNIPPET_PLACEHOLDER = "<CODE>"
 
 def read_semantic_grammar(raw : str, no_snippet=False) -> list[Production]:
     # remove comments
@@ -30,25 +33,27 @@ def read_semantic_grammar(raw : str, no_snippet=False) -> list[Production]:
     
     if no_snippet:
         raw = re.sub(FUNC_SNIPPET_RE, "", raw)
+    else:
+        match = re.findall(FUNC_SNIPPET_RE, raw)
+        # code_snippets = [x for x in match]
+        code_snippets = [re.sub(r"\s+", " ", x) for x in match]
+        raw = re.sub(FUNC_SNIPPET_RE, CODE_SNIPPET_PLACEHOLDER, raw)
     
+    snippet_cnt = 0
     match = re.findall(PRODUCTION_RE, raw)
     # create a list of productions
     productions = []
     for prod in match:
         head = Symbol(prod[0])
         body_str = prod[1]
-        match = re.findall(FUNC_SNIPPET_RE, body_str)
-        code_snippets = [x for x in match]
-        body_str = re.sub(FUNC_SNIPPET_RE, "<CODE>", body_str)
-        
+
         body = []
-        cnt = 0
         for x in body_str.split():
-            if x != '<CODE>':
+            if x != CODE_SNIPPET_PLACEHOLDER:
                 body.append(Symbol(x))
             else:
-                body.append(Snippet(code_snippets[cnt]))
-                cnt += 1
+                body.append(Snippet(code_snippets[snippet_cnt]))
+                snippet_cnt += 1
         productions.append(Production(head, body))
     
     # de-duplicate
