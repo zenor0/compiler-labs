@@ -1,0 +1,34 @@
+====
+DELETE THIS
+=input-sample=
+code = """
+double x ; int i; int[2][3] y;
+"""
+====
+
+'''
+t = None
+w = None
+offset = None
+
+class Top():
+    def __init__(self):
+        self.top = {}
+    def put(self, id, type, offset):
+        self.top[id] = (type, offset)
+    def get(self, id):
+        return self.top[id]
+
+top = Top()
+'''
+
+
+
+P -> <<global offset; offset = 0 >> D
+D -> T id ; <<global offset; top.put( id.value, T.type, offset ); offset = offset + T.width; >> D 
+D -> <epsilon>
+T -> B   <<global t, w; t = B.type; w = B.width;>> C <<T.type = C.type; T.width = C.width; >>
+B -> int <<B.type = int; B.width = 4; >>
+B -> double <<B.type = double; B.width = 8; >> 
+C -> <epsilon> <<C.type = t; C.width = w; >>
+C -> [ num ] C <<C[0].type = f'array({num.value}, {C[1].type})'; C[0].width = num.value * C[1].width; >>

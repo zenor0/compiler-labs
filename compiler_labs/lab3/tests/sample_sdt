@@ -1,0 +1,102 @@
+'''
+from functools import reduce
+class Top():
+    def __init__(self):
+        self.top = {}
+    def put(self, key, value):
+        self.top[key] = value
+    def get(self, key):
+        return self.top[key]
+
+top = Top()
+
+code = []
+nextinstr = 0
+def gen(*args):
+    global nextinstr
+    global code
+    code.append(' '.join([str(x) for x in args]))
+    nextinstr += 1
+
+def makelist(addr):
+    return [addr]
+
+def merge(*args):
+    args = list(args)
+    args.remove(None)
+    return reduce(lambda x, y: x + y, args)
+
+def backpatch(list, instr):
+    if list == None:
+        return
+    global code
+    for i in list:
+        code[i] += str(instr)
+
+object_cnt = 0
+def new():
+    global object_cnt
+    object_cnt += 1
+    return 't' + str(object_cnt)
+    
+'''
+
+
+
+/* Program */
+program  -> basic id ( ) block
+block    -> { decls stmts } <<global nextinstr; backpatch(stmts.nextlist, nextinstr);>>
+
+/* Declaration */
+decls    -> decls decl | <epsilon>
+decl     -> type id ; <<top.put(id.value, type.value);>> 
+
+type     -> type [ num ] | basic <<type.value=basic.type;>>
+basic    -> float 
+basic    -> int <<basic.type=int;>>
+
+/* Statement */
+stmts    -> stmts M stmt <<backpatch(stmts[1].nextlist, M.instr); stmts[0].nextlist=stmt.nextlist;>>
+stmts    -> <epsilon> <<stmts.nextlist=None;>>
+stmt     -> id = expr ; <<stmt.nextlist=None; gen(top.get(id.value), '=', expr.addr);>>
+
+stmt     -> if ( bool ) M stmt    <<backpatch(bool.truelist, M.instr); 
+                                    stmt[0].nextlist=merge(bool.falselist, stmt[1].nextlist);>>
+
+stmt     -> if ( bool ) M stmt N else M stmt <<backpatch(bool.truelist, M[0].instr); 
+                                                backpatch(bool.falselist, M[1].instr);
+                                                temp=merge(stmt[1].nextlist, N.nextlist);
+                                                stmt[0].nextlist=merge(temp, stmt[1].nextlist);>>
+
+stmt     -> while M ( bool ) M stmt <<backpatch(stmt[1].nextlist, M[0].instr); 
+                                        backpatch(bool.truelist, M[1].instr);
+                                        stmt[0].nextlist=bool.falselist;
+                                        gen('goto', M[0].instr);>>
+
+stmt     -> block
+
+M        -> <epsilon> <<global nextinstr; M.instr=nextinstr;>>
+
+N        -> <epsilon> <<global nextinstr; N.nextlist=makelist(nextinstr); gen('goto_____');>>
+
+/* Condition Expressions */
+bool     -> expr rel expr <<global nextinstr; bool.truelist=makelist(nextinstr); bool.falselist=makelist(nextinstr+1); 
+                            gen('if', expr[0].addr, str(rel.children[0]), expr[1].addr, 'goto  ___');
+                            gen('goto _____');>>  
+bool     -> true <<global nextinstr; bool.truelist=makelist(nextinstr); gen('goto_____');>>
+bool     -> false
+bool     -> bool || bool | bool && bool | ! bool | ( bool ) 
+rel      -> < | > | == | != | <= | >=
+
+
+/* Arithmetic Expressions */
+expr     -> expr op expr <<expr[0].addr= new(); gen(expr[0].addr, '=', expr[1].addr, str(op.children[0]), expr[2].addr);>>
+op       -> + | - | * | /
+
+expr     -> ( expr ) <<expr.addr=expr[1].addr>>
+expr     -> id <<expr.addr = id.value>>
+expr     -> num <<expr.addr = num.value>>
+
+
+
+

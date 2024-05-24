@@ -1,0 +1,27 @@
+====
+DELETE THIS
+=input-sample=
+code = """
+x = (a+b) * c;
+"""
+====
+
+'''
+offset = 0
+def new():
+    global offset
+    offset += 1
+    return f't_{offset}'
+
+code = []
+def gen(*args):
+    code.append([*args])
+'''
+
+
+S -> id = E ; <<gen(id.value, '=', E.addr) >>
+E -> E + E <<E[0].addr = new(); gen(E[0].addr, '=', E[1].addr, '+', E[2].addr) >>
+E -> E * E <<E[0].addr = new(); gen(E[0].addr, '=', E[1].addr, '*', E[2].addr) >>
+E -> - E <<E[0].addr = new();  gen(E[0].addr, '=', 'uminus', E[1].addr) >>
+E -> ( E ) <<E[0].addr = E[1].addr >>
+E -> id <<E.addr = id.value >>
