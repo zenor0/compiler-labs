@@ -1,9 +1,12 @@
-from models import Symbol, Node, Grammar, EPSILON
-from utils.hash import get_hash_digest
+from compiler_labs.lab2.models import Symbol, Node, Grammar, EPSILON
+from compiler_labs.lab2.utils.hash import get_hash_digest
 
 import json
 from jinja2 import Environment, FileSystemLoader
+import os
 
+current_dir = os.path.dirname(os.path.realpath(__file__))
+print(current_dir)
 
 def first_traverse(node: Node, method, *args):
     if node is None:
@@ -57,8 +60,8 @@ def render_parse_tree(node_stack: Node | list[Node], grammar: Grammar):
     for list in [tree2hash(node, grammar) for node in node_stack]:
         node_list += list
 
-    env = Environment(loader=FileSystemLoader('./vis/templates'))
-    template = env.get_template('tree.html')
+    env = Environment(loader=FileSystemLoader(current_dir))
+    template = env.get_template('/templates/tree.html')
     return template.render({ 'nodes': json.dumps(node_list) }), node_list
 
 def render_parse_tree_vis(node_stack: Node | list[Node]):
@@ -77,8 +80,8 @@ def render_parse_tree_vis(node_stack: Node | list[Node]):
         nodes.extend(node_table)
         edges.extend(edge_table)
 
-    env = Environment(loader=FileSystemLoader('./vis/templates'))
-    template = env.get_template('tree_visjs.html')
+    env = Environment(loader=FileSystemLoader(current_dir))
+    template = env.get_template('/templates/tree_visjs.html')
     return template.render({ 'nodes': nodes, 'edges': edges }), (nodes, edges)
 
 def render_state_machine(grammar: Grammar):
@@ -91,6 +94,6 @@ def render_state_machine(grammar: Grammar):
     for f, s, t in grammar.state_transition:
         transitions.append({"from": state_name_map[f], "to": state_name_map[t], "label": str(s)})
 
-    env = Environment(loader=FileSystemLoader('./vis/templates'))
-    template = env.get_template('state_visjs.html')
+    env = Environment(loader=FileSystemLoader(current_dir))
+    template = env.get_template('/templates/state_visjs.html')
     return template.render({ 'states': json.dumps(states), 'transitions': json.dumps(transitions) })
