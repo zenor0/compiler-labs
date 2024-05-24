@@ -1,5 +1,5 @@
-from models import Action, END_OF_INPUT, Symbol, Grammar, Node
-from utils.hash import get_hash_digest
+from compiler_labs.lab2.models import Action, END_OF_INPUT, Symbol, Grammar, Node
+from compiler_labs.lab2.utils.hash import get_hash_digest
 
 import pandas as pd
 from pandas import DataFrame
