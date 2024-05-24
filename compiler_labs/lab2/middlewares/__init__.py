@@ -4,13 +4,19 @@ from compiler_labs.lab2.models import Node
 def translation(t: list[Token]) -> list[Node]:
     nodes = []
     
+    def str2number(s: str):
+        try:
+            return int(s)
+        except:
+            return float(s)
+    
     for token in t:
         if token.type == _TOKEN_TYPE.KEYWORD:
             nodes.append(Node(token.value))
         elif token.type == _TOKEN_TYPE.IDENTIFIER:
             nodes.append(Node('id', token.value))
         elif token.type == _TOKEN_TYPE.NUMBER:
-            nodes.append(Node('num', int(token.value)))
+            nodes.append(Node('num', str2number(token.value)))
         elif token.type == _TOKEN_TYPE.OPERATOR:
             nodes.append(Node(token.value))
         elif token.type == _TOKEN_TYPE.CHAR:
