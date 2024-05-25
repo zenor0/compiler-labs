@@ -21,9 +21,11 @@ class _TOKEN_TYPE(Enum):
     CHAR         = 7
 
 class Token:
-    def __init__(self, type, value) -> None:
+    def __init__(self, type, value, line = None, index = None) -> None:
         self.type = type
         self.value = value
+        self.line = line
+        self.index = index
 
     """ Customized string representation of the token """
     def __str__(self) -> str:
@@ -123,6 +125,8 @@ class LexicalParser:
             except SyntaxWarning as e:
                 logger.error(f'Error in "{line}" \nError at line {index} index {e.args[2]}: {e.args[0]} {e.args[1]}')
                 continue
+            for item in tokens:
+                item.line = index
             self.tokens += tokens
             
         return self.tokens
@@ -138,20 +142,20 @@ class LexicalParser:
             if ch.isspace():
                 continue
             if ch in self._delimiters:
-                yield Token(_TOKEN_TYPE.DELIMITER, ch)
+                yield Token(_TOKEN_TYPE.DELIMITER, ch, index=i)
             elif ch in self._single_char_operators:
                 # check if double char operator
                 if i < n and ch + buffer[i] in self._double_char_operators:
-                    yield Token(_TOKEN_TYPE.OPERATOR, ch + buffer[i])
+                    yield Token(_TOKEN_TYPE.OPERATOR, ch + buffer[i], index=i)
                     i += 1
                 else:
-                    yield Token(_TOKEN_TYPE.OPERATOR, ch)
+                    yield Token(_TOKEN_TYPE.OPERATOR, ch, index=i)
                     
             # Check for string
             elif ch == '"':
                 match = re.match(self._string_pattern, buffer[i-1:])
                 if match:
-                    yield Token(_TOKEN_TYPE.STRING, match.group())
+                    yield Token(_TOKEN_TYPE.STRING, match.group(), index=i)
                     i += len(match.group()) - 1
                 else:
                     match = re.search('\n', buffer[i-1:])
@@ -163,7 +167,7 @@ class LexicalParser:
             elif ch == "'":
                 match = re.match(self._char_pattern, buffer[i-1:])
                 if match:
-                    yield Token(_TOKEN_TYPE.CHAR, match.group())
+                    yield Token(_TOKEN_TYPE.CHAR, match.group(), index=i)
                     i += len(match.group()) - 1
                 else:
                     match = re.search('\n', buffer[i-1:])
@@ -175,7 +179,7 @@ class LexicalParser:
             elif ch.isdigit():
                 match = re.match(self._number_pattern, buffer[i-1:])
                 if match:
-                    yield Token(_TOKEN_TYPE.NUMBER, match.group())
+                    yield Token(_TOKEN_TYPE.NUMBER, match.group(), index=i)
                     i += len(match.group()) - 1
                     
             # Check for identifier
@@ -185,9 +189,9 @@ class LexicalParser:
                     word = match.group()
                     word = word.lower()
                     if word in self._keywords:
-                        yield Token(_TOKEN_TYPE.KEYWORD, word)
+                        yield Token(_TOKEN_TYPE.KEYWORD, word, index=i)
                     else:
-                        yield Token(_TOKEN_TYPE.IDENTIFIER, word)
+                        yield Token(_TOKEN_TYPE.IDENTIFIER, word, index=i)
                     i += len(match.group()) - 1
             else:
                 raise SyntaxWarning("Unknown character", ch, i)

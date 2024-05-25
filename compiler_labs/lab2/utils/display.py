@@ -4,7 +4,8 @@ from rich.layout import Layout
 from rich.panel import Panel
 from rich.columns import Columns
 
-from compiler_labs.lab2.models import Action, END_OF_INPUT, Symbol, Grammar, Node
+from compiler_labs.lab2.models import Action, END_OF_INPUT, Symbol, Node
+from compiler_labs.lab2.models.grammar import Grammar
 from compiler_labs.lab2.utils.hash import get_hash_digest
 
 def _get_action_table(table, state_name, symbols, productions: list):

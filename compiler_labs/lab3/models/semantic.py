@@ -3,32 +3,9 @@ from compiler_labs.lab2.models import Node, Symbol, Production
 
 from compiler_labs.lab2.models.lr1 import LR1
 from compiler_labs.lab3.models import Snippet
-from compiler_labs.lab3.utils import reader
 
 import logging
 logger = logging.getLogger('rich')
-
-
-# with open("/home/zenor0/compilers-lab/compiler_labs/lab3/tmp/input", "r") as f:
-#     code = f.read()
-#     semantic_productions, global_functions = reader.read_semantic_grammar(code)
-#     print(semantic_productions, global_functions.keys())
-#     productions = reader.read_semantic_grammar(code, no_snippet=True)
-#     logger.info(productions[0])
-#     grammar = LR1(productions[0])
-
-# code = """
-# int main() {
-#     int a; int b; int c; int d; int x; int y; int z;
-#     while (a<b) if (c<d) x=y+z;
-# }
-# """
-
-
-# tokens = parse_source(code)
-# logger.info(tokens)
-
-# result, symbols = grammar.parse_node(tokens)
 
 
 def run_snippet_on_node(node: Node, snippet: Snippet, global_functions: dict[str, callable]):

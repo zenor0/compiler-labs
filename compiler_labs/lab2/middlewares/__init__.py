@@ -31,4 +31,4 @@ def translation(t: list[Token]) -> list[Node]:
 def parse_source(code: str) -> list[Node]:
     parser = LexicalParser(code)
     tokens = parser.parse()
-    return translation(tokens)
+    return translation(tokens), tokens

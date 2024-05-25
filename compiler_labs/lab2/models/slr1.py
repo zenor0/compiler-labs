@@ -1,9 +1,11 @@
 from typing import List
 from compiler_labs.lab2.utils.hash import get_hash_digest
-from . import Grammar, Production, Symbol, Item, State, Behavior, Action
+from . import Production, Symbol, Item, State, Behavior, Action
 from . import EPSILON, END_OF_INPUT, DOT, logger
 from .lr0 import LR0
 
+from .grammar import Grammar
+from compiler_labs.lab2.models import Action
 class SLR1(LR0):
     def __init__(self, productions: List[Production]):
         super().__init__(productions)

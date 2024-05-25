@@ -27,9 +27,9 @@ def read_semantic_grammar(raw : str, no_snippet=False) -> list[Production]:
     match = re.search(FUNC_DEFINITION_RE, raw, re.MULTILINE)
     raw = re.sub(FUNC_DEFINITION_RE, "", raw)
     
-    functions = {}
+    global_functions = {}
     if match:
-        exec(match.group(1), functions)
+        exec(match.group(1), global_functions)
     
     if no_snippet:
         raw = re.sub(FUNC_SNIPPET_RE, "", raw)
@@ -57,4 +57,4 @@ def read_semantic_grammar(raw : str, no_snippet=False) -> list[Production]:
         productions.append(Production(head, body))
     
     # de-duplicate
-    return [x for i, x in enumerate(productions) if productions.index(x) == i], functions
+    return [x for i, x in enumerate(productions) if productions.index(x) == i], global_functions

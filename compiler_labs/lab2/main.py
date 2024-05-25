@@ -37,16 +37,16 @@ def visualize_parse_tree(stack, grammar, output_path):
     
 def parse_source_code(code, visualize=False, output_path='./outputs/', debug=False):
     console_parse = Console(record=True)
-    # console_parse = Console(record=True, width=80)
-    # logger.info(f"Parsing string: {code}")
-    # logger.debug("Parsing...")
-    result, stack = grammar.parse_node(code)
     
+    try:
+        result, stack = grammar.parse_node(code)
+    except ValueError as e:
+        raise e
+
     if debug:
         result_table = display.get_parse_table(grammar.dump_state_names(), result)
         console_parse.print(f'Parsing sentence: {code}')
         console_parse.print(result_table)
-        # console_parse.save_svg(output_path+'parse_result.svg', title='语法分析结果')
     logger.info("Parsing done.")
     
     if visualize:
@@ -74,14 +74,18 @@ class WatchHandler(FileSystemEventHandler):
         with open(event.src_path, 'r') as f:
             code = f.read()
         
-        token_stream = parse_source(code)
+        node_stream, token_stream = parse_source(code)
         
         with open(tmp_path+'tokens.out', 'w') as f:
-            for token in token_stream:
+            for token in node_stream:
                 f.write(str(token)+"\n")
-    
-        parse_source_code(token_stream, True, output_path, True)
-        
+        try:
+            parse_source_code(node_stream, True, output_path, True)
+        except ValueError as e:
+            error_message, error_index = e.args
+            err_token = token_stream[error_index]
+            logger.error(f'{error_message}, {err_token.line}: {err_token.index}')
+            
         logger.info('Update done.')
 
 

@@ -1,7 +1,8 @@
 from typing import List
-from . import Grammar, Production, Symbol, Item, State, Behavior, Action
+from . import Production, Symbol, Item, State, Behavior, Action
 from . import EPSILON, END_OF_INPUT, DOT, logger
-
+from .grammar import Grammar
+from compiler_labs.lab2.models import Action
 class LR0(Grammar):
     states : List[State]
     state_transition : List

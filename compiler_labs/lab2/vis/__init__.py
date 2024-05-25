@@ -1,4 +1,5 @@
-from compiler_labs.lab2.models import Symbol, Node, Grammar, EPSILON
+from compiler_labs.lab2.models import Symbol, Node, EPSILON
+from compiler_labs.lab2.models.grammar import Grammar
 from compiler_labs.lab2.utils.hash import get_hash_digest
 
 import json
