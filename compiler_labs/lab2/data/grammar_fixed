@@ -1,0 +1,38 @@
+/* Program */
+program  -> basic id ( ) block
+block    -> { decls stmts }
+
+/* Declaration */
+decls    -> decls decl  | <epsilon>
+decl     -> type id ;
+type     -> type [ num ] | basic
+basic    -> float | int
+
+/* Statements */
+/* else总是匹配最近的尚未匹配else的if */
+stmts -> stmts stmt | <epsilon>
+stmt -> matched_stmt | unmatched_stmt
+matched_stmt -> if ( bool_expr ) matched_stmt else matched_stmt
+              | while ( bool_expr ) matched_stmt
+              | do matched_stmt while ( bool_expr ) ;
+              | break ;
+              | block
+              | id = expr ;
+              | loc = expr ;
+unmatched_stmt -> if ( bool_expr ) stmt
+                | if ( bool_expr ) matched_stmt else unmatched_stmt
+
+loc      -> id [ num ] loc_suffix 
+loc_suffix  -> [ num ] loc_suffix | <epsilon>
+
+/* Condition Expressions */
+bool_expr -> bool_expr || bool_term | bool_term
+bool_term -> bool_term && bool_factor | bool_factor
+bool_factor -> ! bool_factor | rel_expr | true | false | ( bool_expr )
+rel_expr -> expr rel_op expr
+rel_op -> < | > | == | != | <= | >=
+
+/* Arithmetic Expressions */
+expr     -> expr + term | expr - term | term
+term     -> term * factor | term / factor | factor
+factor   -> - factor | ( expr ) | loc | id | num
