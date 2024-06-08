@@ -1,0 +1,31 @@
+'''
+offset = 0
+def new():
+    global offset
+    offset += 1
+    return f't_{offset}'
+
+
+class Top():
+    def __init__(self):
+        self.top = {}
+    def put(self, id, type, offset):
+        self.top[id] = (type, offset)
+    def get(self, id):
+        return self.top[id]
+
+code = []
+def gen(*args):
+    code.append([*args])
+
+
+top = Top()
+'''
+
+
+S -> id = E ;
+        | L = E ;    <<gen(L.array.base, '[', L.addr, ']', '=', E.addr); >>
+E -> E + E | - E | ( E ) | id 
+        | L          <<E.addr = new(); gen(E.addr, '=', L.array.base, '[', L.addr, ']'); >>
+L -> id [ E ]        <<L.array = top.get(id.value); L.type = L.array.type.elem; L.addr = new(); gen(L.addr, '=', E.addr, '*', L.type.width); >>
+        | L [ E ]    <<L[0].array = L[1].array; L[0].type = L[1].type.elem; t  = new(); L[0].addr = new(); gen(t, '=', E.addr, '*', L[0].type.width); gen(L[0].addr, '=', L[1].addr, '+', t); >>
