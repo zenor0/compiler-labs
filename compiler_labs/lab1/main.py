@@ -2,7 +2,7 @@ import sys
 import os
 
 import rich.table
-from lexical import LexicalParser, _TOKEN_TYPE
+from compiler_labs.lab1.lexical import LexicalParser, _TOKEN_TYPE
 import argparse
 import logging
 import rich
