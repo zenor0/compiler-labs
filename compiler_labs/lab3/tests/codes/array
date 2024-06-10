@@ -1,0 +1,7 @@
+int main() {
+  int array[3][3][3];
+  // Assign values
+  array[1][1][1] = 1;
+
+  return 0;
+}

@@ -1,0 +1,17 @@
+int main() {
+
+  int a, b, c, d;
+  int x, y, z;
+
+  while (a < b) {
+    if (c < d) {
+      x = y + z;
+      // Break statement
+      break;
+      continue;
+      return 0;
+    }
+  }
+
+  return 1;
+}

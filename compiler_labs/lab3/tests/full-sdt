@@ -1,0 +1,380 @@
+'''
+from functools import reduce
+
+class MemoryChunk():
+    def __init__(self, value, size, type=None, name=None):
+        self.value = value
+        self.size = size
+        self.name = name
+        self.type = type
+    def __str__(self):
+        return f'{self.name}<{self.type}> = {self.value}, size = {self.size}'
+
+class Memory():
+    def __init__(self):
+        self.memory = []
+        self.temp_cnt = 0
+    def put(self, value, size, type=None, name=None) -> int:
+        self.memory.append(MemoryChunk(value=value, size=size, name=name, type=type))
+        return len(self.memory) - 1
+    def get(self, ptr):
+        return self.memory[ptr].value
+    def locate(self, ptr):
+        return self.memory[ptr]
+    def find(self, name) -> int:
+        for i in range(len(self.memory)):
+            if self.memory[i].name == name:
+                return i
+        return None
+    def malloc(self, size, type=None, value=None, name=None) -> int:
+        if name == None:
+            name = f't{self.temp_cnt}'
+            self.temp_cnt += 1
+        value = value if value != None else 0
+        type = type if type != None else 'int'
+        return self.put(value=value, size=size, name=name, type=type)
+    def __repr__(self):
+        return '\n'.join([str(chunk) for chunk in self.memory])
+
+class Type():
+    def __init__(self, type, size, chunk=None):
+        self.type = type
+        self.size = size
+        self.chunk = chunk
+    
+    def __repr__(self):
+        return f'{self.type}' if self.chunk == None else f'{self.type}{self.chunk}'
+
+class Code():
+    def __init__(self, operation, arg1, arg2, result):
+        self.operation = operation
+        self.arg1 = arg1
+        self.arg2 = arg2
+        self.result = result
+    
+    def __str__(self):
+        return f'{self.operation} {self.arg1} {self.arg2} -> {self.result}'
+    def __repr__(self):
+        return f'{self.operation} {self.arg1} {self.arg2} -> {self.result}'
+
+class Label():
+    def __init__(self):
+        self.label = {}
+    def new_label(self, instr_ptr=None):
+        label = f'L{len(self.label)}'
+        self.label[label] = instr_ptr
+        return label
+    def set_label(self, label, instr_ptr):
+        self.label[label] = instr_ptr
+
+class SymbolTable():
+    def __init__(self):
+        self.table = {}
+    def put(self, key, value):
+        self.table[key] = value
+    def get(self, key):
+        return self.table[key]
+
+TYPE_SPEC = {
+    'float': 4,
+    'int': 4,
+    'double': 8,
+    'char': 2,
+    'long': 4,
+    'short': 4,
+    'void': 0
+}
+
+mem = Memory()
+sym = SymbolTable()
+label = Label()
+code = []
+nextinstr = 0
+
+def gen(instr: Code, *args):
+    global nextinstr, code
+    code.append(instr)
+    nextinstr += 1
+
+def makelist(addr):
+    return [addr]
+
+def merge(*args):
+    args = list(args)
+    args = [arg for arg in args if arg != None]
+    return reduce(lambda x, y: x + y, args)
+
+def backpatch(list, instr):
+    if list == None:
+        return
+    global code
+    for i in list:
+        label.set_label(code[i].result, instr)
+
+def _declare_list(type, val_list):
+    global mem
+    # Check if double declaration
+    for (name, value, pos) in val_list:
+        if mem.find(name) != None:
+            raise Exception(f'Double declaration of "{name}"')
+
+    type_size = TYPE_SPEC[type]
+    for (name, value, pos) in val_list:
+        if pos == None:
+            continue
+        chunk_type = type if pos == [0] else Type(type, type_size, pos)
+        chunk_cnt = reduce(lambda x, y: x * y, pos)
+        for i in range(chunk_cnt):
+            if i == 0:
+                mem.malloc(size=type_size, type=chunk_type, value=value, name=name)
+            else:
+                mem.malloc(size=type_size, type=type, value=value, name=f'{name}.{i}')
+        else:
+            if chunk_cnt == 0:
+                mem.malloc(size=type_size, type=type, value=value, name=name)
+
+def _assign_list(val_list):
+    global mem
+    for (name, value, pos) in val_list:
+        if pos:
+            addr = mem.find(name)
+            if addr == None:
+                raise Exception(f'Variable "{name}" not declared')
+            offset = 0
+            #offset_ptr = mem.malloc(size=4, value=0)
+            if pos != [0]:
+                chunk_type = mem.locate(addr).type
+                chunk_config = chunk_type.chunk
+                prev_size = 1
+                #prev_size_ptr = mem.malloc(size=4, value=1)
+                for p, config in zip(pos[::-1], (chunk_config)[::-1]):
+                    if p > config:
+                        raise Exception(f'Array index out of bound for "{name}"')
+                    offset += p * prev_size
+                    #gen(Code('MUL', prev_size_ptr, mem.malloc(size=4, value=p), prev_size_ptr))
+                    prev_size *= config
+                    #gen(Code('ADD', offset_ptr, prev_size_ptr, offset_ptr))
+            #gen(Code('ADD', addr, offset, offset_ptr))
+            #gen(Code('MOV', value, None, offset_ptr))
+            gen(Code('MOV', value, None, addr+offset))
+
+
+
+def _func_call(id, args):
+    global mem
+    func_call = mem.malloc(4)
+    for arg in args[::-1]:
+        gen(Code('PUSH', arg, None, None))
+    gen(Code('CALL', id, None, func_call))
+    return func_call
+
+output_result = {
+    'mem': mem,
+    'code': code,
+    'label': label.label,
+}
+brk = None
+cntne = None
+'''
+
+
+
+/* Program */
+program  -> decl_spec declarator block
+block -> { decls stmts }   <<block.nextlist = stmts.nextlist;>>
+block -> { decls }         <<block.nextlist = None;>>
+block -> { stmts }         <<block.nextlist = stmts.nextlist;>>
+block -> { }
+// block -> { sentenses }        <<block.nextlist = sentenses.nextlist;>>
+// sentenses -> sentenses sentense <<sentenses.nextlist = sentenses[1].nextlist;>>
+// sentense -> decls               <<sentense.nextlist = None;>>
+// sentense ->  stmts              <<sentense.nextlist = stmts.nextlist;>>
+// sentense ->  block              <<sentense.nextlist = block.nextlist;>>
+// sentense ->  <epsilon>          <<sentense.nextlist = None;>>
+
+/* Declaration */
+decls -> decls decl 
+decls -> decl
+decl -> decl_spec declarator_list ;  <<_declare_list(decl_spec.type, declarator_list.list);>>
+decl -> declarator_list ;            <<_assign_list(declarator_list.list);>>
+
+decl_spec -> type_spec decl_spec <<decl_spec.type = type_spec.type + decl_spec.type
+                                   decl_spec.size = type_spec.size + decl_spec.size;>>
+decl_spec -> type_spec           <<decl_spec.type = type_spec.type;
+                                   decl_spec.size = type_spec.size; >>
+type_spec -> float               <<type_spec.type = 'float';  type_spec.size = 4;>>
+type_spec -> int                 <<type_spec.type = 'int';    type_spec.size = 4;>>
+type_spec -> double              <<type_spec.type = 'double'; type_spec.size = 8;>>
+type_spec -> char                <<type_spec.type = 'char';   type_spec.size = 2;>>
+type_spec -> long                <<type_spec.type = 'long';   type_spec.size = 4;>>
+type_spec -> short               <<type_spec.type = 'short';  type_spec.size = 4;>>
+type_spec -> void                <<type_spec.type = 'void';   type_spec.size = 0;>>
+declarator_list -> init_declarator  <<declarator_list.list = [(init_declarator.name, init_declarator.value, init_declarator.pos)];>>
+declarator_list -> declarator_list , init_declarator <<declarator_list[0].list = declarator_list[1].list + [(init_declarator.name, init_declarator.value, init_declarator.pos)];>>
+init_declarator -> declarator = conditional_exp  <<global mem; init_declarator.name = declarator.name;
+                                                   init_declarator.value = conditional_exp.addr;
+                                                    init_declarator.pos = declarator.pos;>>
+init_declarator -> declarator   <<init_declarator.name = declarator.name;
+                                  init_declarator.value = 0;
+                                  init_declarator.pos = declarator.pos;>>
+declarator -> id                <<declarator.name = id.value;
+                                    declarator.pos = [0];>>
+declarator -> declarator [ exp ] <<global mem; declarator[0].name = declarator[1].name;
+                                    declarator[0].pos = (declarator[1].pos + [mem.get(exp.addr)]) if declarator[1].pos != [0] else [mem.get(exp.addr)];>>
+declarator -> declarator [ ]     <<declarator[0].name = declarator[1].name;
+                                    declarator[0].pos = declarator[1].pos + [-1] if len(declarator[1].pos) != 1 else [-1];>>
+declarator -> declarator ( exp ) <<declarator[0].name = declarator[1].name; declarator[0].pos = None; _func_call(declarator[1].name, exp.list);>>
+declarator -> declarator ( )
+
+
+/* Statement */
+stmts -> stmts      <<global nextinstr; stmt.start = nextinstr;>> stmt <<backpatch(stmts[1].nextlist, stmt.start); stmts[0].nextlist = stmt.nextlist;>> 
+stmts -> stmt       <<stmts.nextlist = stmt.nextlist; >>
+stmt -> if ( exp )  <<global nextinstr; stmt[1].start = nextinstr>>  stmt  <<backpatch(exp.truelist, nextinstr); stmt[0].nextlist = merge(exp.falselist, stmt[1].nextlist)>>
+stmt -> if ( exp )  <<global nextinstr; stmt[1].start = nextinstr;>> stmt <<global nextinstr, label; stmt[1].end = [nextinstr]; gen(Code('JMP', None, None, label.new_label()))>> else <<global nextinstr; stmt[2].start = nextinstr;>> stmt <<backpatch(exp.truelist, stmt[1].start);
+                      backpatch(exp.falselist, stmt[2].start);
+                      stmt[0].nextlist = merge(stmt[1].nextlist, stmt[2].nextlist, stmt[1].end);>>
+stmt -> while <<global nextinstr, cntne; exp.start = nextinstr; cntne = nextinstr;>> ( exp ) <<global nextinstr; stmt[1].start = nextinstr>>  stmt  <<global nextinstr, label;
+                    global cntne, brk;
+                    backpatch(merge(stmt[1].nextlist, cntne), exp.start);
+                    backpatch(exp.truelist, stmt[1].start);
+                    stmt[0].nextlist = merge(exp.falselist, brk);
+                    gen(Code('JMP', None, None, label.new_label()));
+                    backpatch([nextinstr - 1], exp.start);
+                    backpatch(stmt[1].nextlist, nextinstr);>>
+stmt -> do stmt while ( exp ) ;
+stmt -> break ;     <<global nextinstr, brk, label; brk = [nextinstr]; stmt.nextlist = None; gen(Code('JMP', None, None, label.new_label()));>>
+stmt -> continue ;  <<global nextinstr, cntne; cntne = [nextinstr]; stmt.nextlist = None; gen(Code('JMP', None, None, label.new_label()));>>
+stmt -> return exp ; <<global mem;
+                        gen(Code('RET', exp.addr, None, None));
+                        stmt.nextlist = None;>>
+stmt -> block       <<stmt.nextlist = block.nextlist;>>
+stmt -> ;
+
+/* Condition Expressions */
+exp -> exp , conditional_exp <<exp[0].addr = exp[1].addr;
+                                exp[0].truelist = exp[1].truelist;
+                                exp[0].falselist = exp[1].falselist;
+                                exp[0].list = exp[1].list + [conditional_exp.addr];>>
+exp -> conditional_exp      <<exp.addr = conditional_exp.addr;
+                                exp.truelist = conditional_exp.truelist;
+                                exp.falselist = conditional_exp.falselist;
+                                exp.list = [conditional_exp.addr]>>
+conditional_exp -> or_exp   <<conditional_exp.addr = or_exp.addr;
+                              conditional_exp.truelist = or_exp.truelist;
+                              conditional_exp.falselist = or_exp.falselist;>>
+conditional_exp -> or_exp ? exp : conditional_exp
+or_exp -> or_exp || <<global nextinstr; join.start = nextinstr>>  join    <<backpatch(or_exp[1].falselist, join.start);
+                              or_exp[0].addr = None;
+                              or_exp[0].truelist = merge(or_exp[1].truelist, join.truelist);
+                              or_exp[0].falselist = join.falselist;>>
+or_exp -> join              <<or_exp.addr = join.addr;
+                              or_exp.truelist = join.truelist;
+                              or_exp.falselist = join.falselist;>>
+join -> join && <<global nextinstr; equality.start = nextinstr>>  equality    <<backpatch(join[1].truelist, equality.start);
+                                join[0].addr = None;
+                              join[0].truelist = equality.truelist;
+                              join[0].falselist = merge(join[1].falselist, equality.falselist);>>
+join -> equality            <<join.addr = equality.addr;
+                                join.truelist = equality.truelist;
+                                join.falselist = equality.falselist;>>
+equality -> equality == rel <<global nextinstr, label;
+                              equality[0].addr = None;
+                              equality[0].truelist = [nextinstr];
+                              equality[0].falselist = [nextinstr + 1];
+                              gen(Code('JE', equality[1].addr, rel.addr, label.new_label()));
+                              gen(Code('JMP', None, None, label.new_label())); >>
+equality -> equality != rel  <<global nextinstr, label;
+                              equality[0].addr = None;
+                              equality[0].truelist = [nextinstr];
+                              equality[0].falselist = [nextinstr + 1];
+                              gen(Code('JNE', equality[1].addr, rel.addr, label.new_label()));
+                              gen(Code('JMP', None, None, label.new_label())); >>
+equality -> rel          <<equality.addr = rel.addr;
+                            equality.truelist = rel.truelist;
+                            equality.falselist = rel.falselist;>>
+rel -> expr < expr       <<global nextinstr, label;
+                           rel.addr = None;
+                           rel.truelist = [nextinstr];
+                           rel.falselist = [nextinstr + 1];
+                           gen(Code('JL', expr[0].addr, expr[1].addr, label.new_label()));
+                           gen(Code('JMP', None, None, label.new_label())); >>
+rel -> expr <= expr      <<global nextinstr, label;
+                           rel.addr = None;
+                           rel.truelist = [nextinstr];
+                           rel.falselist = [nextinstr + 1];
+                           gen(Code('JLE', expr[0].addr, expr[1].addr, label.new_label()));
+                           gen(Code('JMP', None, None, label.new_label())); >>
+rel -> expr >= expr      <<global nextinstr, label;
+                           rel.addr = None;
+                           rel.truelist = [nextinstr];
+                           rel.falselist = [nextinstr + 1];
+                           gen(Code('JGE', expr[0].addr, expr[1].addr, label.new_label()));
+                           gen(Code('JMP', None, None, label.new_label())); >>
+rel -> expr > expr       <<global nextinstr, label;
+                           rel.addr = None;
+                           rel.truelist = [nextinstr];
+                           rel.falselist = [nextinstr + 1];
+                           gen(Code('JG', expr[0].addr, expr[1].addr, label.new_label()));
+                           gen(Code('JMP', None, None, label.new_label())); >>
+rel -> expr              <<rel.addr = expr.addr;
+                            rel.truelist = None;
+                            rel.falselist = None;>>
+/* Arithmetic Expressions */
+expr -> expr + term      <<global mem;
+                           temp = mem.malloc(4);
+                           gen(Code('ADD', expr[1].addr, term.addr, temp));
+                           expr[0].addr = temp; >>
+expr -> expr - term      <<global mem;
+                           temp = mem.malloc(4);
+                           gen(Code('SUB', expr[1].addr, term.addr, temp));
+                           expr[0].addr = temp; >>
+expr -> term             <<expr.addr = term.addr>>
+term -> term * unary     <<global mem;
+                           temp = mem.malloc(4);
+                           gen(Code('MUL', term[1].addr, unary.addr, temp));
+                           term[0].addr = temp; >>
+term -> term / unary     <<global mem;
+                           temp = mem.malloc(4);
+                           gen(Code('DIV', term[1].addr, unary.addr, temp));
+                           term[0].addr = temp; >>
+term -> term % unary     <<global mem;
+                           temp = mem.malloc(4);
+                           gen(Code('MOD', term[1].addr, unary.addr, temp));
+                           term[0].addr = temp; >>
+term -> unary            <<term.addr = unary.addr>>
+unary -> ! unary         <<global mem;
+                           temp = mem.malloc(4);
+                           gen(Code('NOT', unary[1].addr, None, temp));
+                           unary[0].addr = temp; >>
+unary -> - unary         <<global mem;
+                           temp = mem.malloc(4);
+                           gen(Code('NEG', unary[1].addr, None, temp));
+                           unary[0].addr = temp; >>
+unary -> ++ unary        <<global mem;
+                           unary[0].addr = unary[1].addr; 
+                           gen(Code('INC', unary[1].addr, 1, unary[1].addr)); >>
+unary -> -- unary        <<global mem;
+                           unary[0].addr = unary[1].addr; 
+                           gen(Code('DEC', unary[1].addr, 1, unary[1].addr)); >>
+unary -> factor          <<unary.addr = factor.addr>>
+factor -> ( exp )        <<factor.addr = exp.addr>>
+factor -> id             <<global mem;
+                           factor.addr = mem.find(id.value);
+                            factor.value = mem.get(factor.addr);>>
+factor -> num            <<global mem;
+                           factor.addr = mem.malloc(size=4, value=num.value, type='const');
+                           factor.value = num.value;>>
+factor -> real           <<global mem;
+                           factor.addr = mem.malloc(size=4, value=real.value, type='float');
+                           factor.value = real.value;>>
+factor -> true           <<global mem;
+                           factor.addr = mem.malloc(size=4, value=true, type='int');
+                           factor.value = true;>>
+factor -> false          <<global mem;
+                           factor.addr = mem.malloc(size=4, value=false, type='int');
+                           factor.value = false;>>
+factor -> string         <<global mem;
+                           factor.addr = mem.malloc(len(string.value) + 1, string.value, string.value);
+                           factor.value = string.value>>
+

@@ -1,0 +1,26 @@
+int main() {
+  // Declare variables
+  int a, b, c, d;
+  int x, y, z;
+  // Declare array
+  int array[3][3][3];
+  // Assign values
+  array[1][1][1] = 1;
+
+  // Control flow
+  while (a < b) {
+    if (c < d) {
+      x = y + z;
+      // Break statement
+      break;
+      continue;
+      return 0;
+    }
+  }
+
+  // Function call
+  int foo;
+  int result = foo(1, 2, 3);
+
+  return 1;
+}
