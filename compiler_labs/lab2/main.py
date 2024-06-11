@@ -8,14 +8,14 @@ from rich.logging import RichHandler
 from rich.columns import Columns
 from rich.console import Console
 
-from models import *
-from models.lr0 import LR0
-from models.slr1 import SLR1
-from models.lr1 import LR1
-from utils import display
-from utils import reader
-from vis import *
-from middlewares import parse_source
+from compiler_labs.lab2.models import *
+from compiler_labs.lab2.models.lr0 import LR0
+from compiler_labs.lab2.models.slr1 import SLR1
+from compiler_labs.lab2.models.lr1 import LR1
+from compiler_labs.lab2.utils import display
+from compiler_labs.lab2.utils import reader
+from compiler_labs.lab2.vis import *
+from compiler_labs.lab2.middlewares import parse_source
 
 logger = logging.getLogger('rich')
 logger.setLevel(logging.INFO)
