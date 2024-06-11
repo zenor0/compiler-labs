@@ -185,12 +185,6 @@ block -> { decls stmts }   <<block.nextlist = stmts.nextlist;>>
 block -> { decls }         <<block.nextlist = None;>>
 block -> { stmts }         <<block.nextlist = stmts.nextlist;>>
 block -> { }
-// block -> { sentenses }        <<block.nextlist = sentenses.nextlist;>>
-// sentenses -> sentenses sentense <<sentenses.nextlist = sentenses[1].nextlist;>>
-// sentense -> decls               <<sentense.nextlist = None;>>
-// sentense ->  stmts              <<sentense.nextlist = stmts.nextlist;>>
-// sentense ->  block              <<sentense.nextlist = block.nextlist;>>
-// sentense ->  <epsilon>          <<sentense.nextlist = None;>>
 
 /* Declaration */
 decls -> decls decl 
@@ -246,6 +240,7 @@ stmt -> do stmt while ( exp ) ;
 stmt -> break ;     <<global nextinstr, brk, label; brk = [nextinstr]; stmt.nextlist = None; gen(Code('JMP', None, None, label.new_label()));>>
 stmt -> continue ;  <<global nextinstr, cntne; cntne = [nextinstr]; stmt.nextlist = None; gen(Code('JMP', None, None, label.new_label()));>>
 stmt -> return exp ; <<global mem;
+                        gen(Code("PUSH", exp.addr, None, None));
                         gen(Code('RET', exp.addr, None, None));
                         stmt.nextlist = None;>>
 stmt -> block       <<stmt.nextlist = block.nextlist;>>

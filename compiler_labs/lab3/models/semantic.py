@@ -25,8 +25,8 @@ def run_snippet_on_node(node: Node, snippet: Snippet, global_functions: dict[str
         logger.debug(symbol_info_list)
     except Exception as e:
         # show_node_debug(node)
-        logger.error(f"Error executing snippet: {e}, {snippet}")
-        raise e
+        logger.error(f"Error executing snippet: {e}, {snippet} in production {node.production}")
+        # raise e
 
 def top_down_traverse(node: Node, semantic_productions: list[Production], global_functions: dict[str, callable]):
     if not node.production:
