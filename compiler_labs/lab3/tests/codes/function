@@ -1,7 +1,7 @@
 int main() {
   // Function call
   int foo;
-  int result = foo(1, 2, 3);
+  foo(1, 2, 3);
 
   return 0;
 }
