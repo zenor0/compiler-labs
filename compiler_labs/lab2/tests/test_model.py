@@ -3,7 +3,8 @@
 # test first set parse
 # test follow set parse
 
-from models import Symbol, Production, Grammar, Item, DOT
+from compiler_labs.lab2.models import Symbol, Production, Item, DOT
+from compiler_labs.lab2.models.grammar import Grammar
 
 def test_symbol():
     s1 = Symbol('a')

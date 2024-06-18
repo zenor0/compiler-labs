@@ -1,6 +1,5 @@
-from models import lr1,Symbol,Production,Grammar
-from utils import reader
-
+from compiler_labs.lab2.models import lr1,Symbol,Production
+from compiler_labs.lab2.utils import reader
 
 def test_lr1():
     grammar = """
