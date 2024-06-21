@@ -4,7 +4,7 @@ run: setup
 	python3 main.py $(input)
 
 demo: clean setup
-	python3 main.py ./data/grammar1.txt -p "b a a b" -m "LR1" -v -d
+	python3 main.py ./data/grammar1.txt -p "b a a b" -m "LR1" -v
 
 lexical:  clean open
 	python3 main.py ./data/grammar.txt -s ./data/sample.watch -v -w

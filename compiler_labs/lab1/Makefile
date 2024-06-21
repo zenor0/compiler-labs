@@ -17,6 +17,8 @@ vis:
 
 
 open:
+	mkdir -p ./tmp ./outputs
+	touch ./tmp/input
 	code ./tmp/input
 	code ./outputs/input.out
 	code ./outputs/input.sym
@@ -24,5 +26,6 @@ open:
 watch: open
 	python3 main.py ./tmp/input -w
 
+demo: watch
 
 .PHONY: test clean vis

@@ -43,10 +43,9 @@ def parse_source_code(code, visualize=False, output_path='./outputs/', debug=Fal
     except ValueError as e:
         raise e
 
-    if debug:
-        result_table = display.get_parse_table(grammar.dump_state_names(), result)
-        console_parse.print(f'Parsing sentence: {code}')
-        console_parse.print(result_table)
+    result_table = display.get_parse_table(grammar.dump_state_names(), result)
+    console_parse.print(f'Parsing sentence: {code}')
+    console_parse.print(result_table)
     logger.info("Parsing done.")
     
     if visualize:
@@ -157,12 +156,11 @@ if __name__ == "__main__":
     
     logger.info("Parsing done.")
     logger.info("Grammar info:")
-    if debug:
-        info = display.get_all_info(grammar)
-        console.print(info)
-    
-        with open(output_path + 'result.txt', 'w') as f:
-            print(info, file=f)
+    info = display.get_all_info(grammar)
+    console.print(info)
+
+    with open(output_path + 'result.txt', 'w') as f:
+        print(info, file=f)
     
     if visualize:
         logger.info("Visualizing state machine...")
