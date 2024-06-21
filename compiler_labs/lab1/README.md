@@ -1,5 +1,7 @@
 # Lab1 Lexical Parser
 
+[English](./README.md) | [中文](./README-zhcn.md)
+
 ## Introduction
 
 This lab is to implement a lexical parser for a simple language. The language is a subset of C language. The lexical parser is to recognize the tokens in the input file and output the tokens with their corresponding lexemes.

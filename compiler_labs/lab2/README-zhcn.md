@@ -1,5 +1,7 @@
 # 语法分析
 
+[English](./README.md) | [中文](./README-zhcn.md)
+
 ## 描述
 
 该项目实现了一个简单的语法分析器.
