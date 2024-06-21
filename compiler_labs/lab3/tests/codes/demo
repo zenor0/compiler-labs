@@ -1,0 +1,33 @@
+int main()
+{
+    int i = 1;
+    int a, b, c, d;
+    int x, y, z;
+    int i;
+    int array[2][2][2];
+
+    array[1][1][1] = 100;
+    array[10][10][10] = 100;
+    i = 1;
+    j = 1;
+
+    printf("Hello World\n", 1, 2, 3);
+
+    while (a < b)
+    {
+        if (c < d)
+        {
+            x = y + z;
+            // Break statement
+            break;
+            continue;
+            return 0;
+        }
+    }
+
+    if (x < 100 || x > 200 && x != y)
+    {
+        x = 1 * 2 + 3 / 4 % 100 + (-1);
+    }
+    return 1;
+}
