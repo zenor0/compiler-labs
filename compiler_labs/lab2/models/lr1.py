@@ -43,21 +43,27 @@ class LR1(Grammar):
                         self.states.append(new_state)
                         
     def calc_closure(self, state: State):
-        added = True
-        while added:
-            added = False
-            for item in state.states:
-                next_symbol = item.next_symbol()
-                if next_symbol is not None and next_symbol in self._non_terminals:
-                    calc_first_term = item.body[item.dot_index+1:] + item.lookahead
-                    next_first = self.first(calc_first_term)
-                    for prod in self.productions:
-                        if prod.head == next_symbol:
-                            for lookahead in next_first:
-                                new_item = Item(prod, 0, [lookahead])
-                                if new_item not in state.states:
-                                    state.states.append(new_item)
-                                    added = False
+        # added = True
+        cnt = 0
+        while True:
+            # added = False
+            try:
+                item = state.states[cnt]
+                cnt += 1
+            except IndexError:
+                break
+            next_symbol = item.next_symbol()
+            if next_symbol is not None and next_symbol in self._non_terminals:
+                calc_first_term = item.body[item.dot_index+1:] + item.lookahead
+                next_first = self.first(calc_first_term)
+                for prod in self.productions:
+                    if prod.head == next_symbol:
+                        for lookahead in next_first:
+                            new_item = Item(prod, 0, [lookahead])
+                            if new_item not in state.states:
+                                state.states.append(new_item)
+                                # print(new_item)
+                                # added = False
         return state
     def goto(self, state: State, symbol: Symbol):
         kernel = []
